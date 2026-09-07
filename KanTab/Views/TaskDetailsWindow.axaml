@@ -1,0 +1,182 @@
+<Window xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:vm="using:KanTab.ViewModels"
+        xmlns:converters="using:KanTab.Converters"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        mc:Ignorable="d" d:DesignWidth="420" d:DesignHeight="480"
+        x:Class="KanTab.Views.TaskDetailsWindow"
+        x:DataType="vm:TaskDetailsViewModel"
+        Title="Task Details"
+        Width="420"
+        Height="460"
+        MinWidth="360"
+        MinHeight="340"
+        WindowStartupLocation="CenterOwner"
+        Background="{StaticResource WindowBackgroundBrush}">
+
+    <Design.DataContext>
+        <vm:TaskDetailsViewModel />
+    </Design.DataContext>
+
+    <ScrollViewer VerticalScrollBarVisibility="Auto">
+        <StackPanel Margin="16,14" Spacing="10">
+
+            <!-- Title -->
+            <TextBlock Text="{Binding Title}"
+                       FontSize="14"
+                       FontWeight="SemiBold"
+                       Foreground="{StaticResource TextPrimaryBrush}"
+                       TextWrapping="Wrap" />
+
+            <!-- Description -->
+            <Border IsVisible="{Binding HasDescription}"
+                    Background="{StaticResource SurfaceBrush}"
+                    BorderBrush="{StaticResource BorderBrush}"
+                    BorderThickness="1"
+                    CornerRadius="3"
+                    Padding="8,6">
+                <TextBlock Text="{Binding Description}"
+                           FontSize="12"
+                           Foreground="{StaticResource TextSecondaryBrush}"
+                           TextWrapping="Wrap" />
+            </Border>
+
+            <Rectangle Height="1" Fill="{StaticResource DividerBrush}" Margin="0,2" />
+
+            <!-- Checklist header -->
+            <Grid ColumnDefinitions="*,Auto">
+                <TextBlock Grid.Column="0"
+                           Text="Checklist"
+                           FontSize="12"
+                           FontWeight="SemiBold"
+                           Foreground="{StaticResource TextSecondaryBrush}"
+                           VerticalAlignment="Center" />
+                <TextBlock Grid.Column="1"
+                           Text="{Binding ProgressDisplay}"
+                           FontSize="11"
+                           Foreground="{StaticResource TextMutedBrush}"
+                           VerticalAlignment="Center"
+                           IsVisible="{Binding HasChecklist}" />
+            </Grid>
+
+            <!-- Add subtask -->
+            <Grid ColumnDefinitions="*,Auto">
+                <TextBox Grid.Column="0"
+                         Text="{Binding NewChecklistText}"
+                         PlaceholderText="Add subtask..."
+                         FontSize="12"
+                         Background="{StaticResource SurfaceBrush}"
+                         Foreground="{StaticResource TextPrimaryBrush}"
+                         BorderBrush="{StaticResource BorderBrush}">
+                    <TextBox.KeyBindings>
+                        <KeyBinding Gesture="Enter" Command="{Binding AddChecklistItemCommand}" />
+                    </TextBox.KeyBindings>
+                </TextBox>
+                <Button Grid.Column="1"
+                        Content="Add subtask"
+                        Margin="8,0,0,0"
+                        FontSize="11"
+                        Padding="8,4"
+                        MinHeight="26"
+                        Background="{StaticResource SurfaceBrush}"
+                        Foreground="{StaticResource TextSecondaryBrush}"
+                        BorderBrush="{StaticResource BorderBrush}"
+                        Command="{Binding AddChecklistItemCommand}" />
+            </Grid>
+
+            <!-- Checklist items -->
+            <ItemsControl ItemsSource="{Binding Task.Checklist}"
+                          IsVisible="{Binding HasChecklist}">
+                <ItemsControl.ItemTemplate>
+                    <DataTemplate>
+                        <Border Background="{StaticResource SurfaceBrush}"
+                                BorderBrush="{StaticResource BorderBrush}"
+                                BorderThickness="1"
+                                CornerRadius="2"
+                                Padding="6,4"
+                                Margin="0,0,0,4">
+                            <Grid ColumnDefinitions="Auto,*,Auto,Auto,Auto">
+                                <CheckBox Grid.Column="0"
+                                          IsChecked="{Binding IsCompleted}"
+                                          VerticalAlignment="Center"
+                                          Margin="0,0,6,0" />
+                                <TextBox Grid.Column="1"
+                                         Text="{Binding Text}"
+                                         FontSize="12"
+                                         VerticalAlignment="Center"
+                                         Background="Transparent"
+                                         BorderThickness="0"
+                                         Foreground="{StaticResource TextPrimaryBrush}"
+                                         Classes.completed="{Binding IsCompleted}">
+                                    <TextBox.Styles>
+                                        <Style Selector="TextBox.completed /template/ TextBlock#PART_TextPresenter">
+                                            <Setter Property="TextDecorations" Value="Strikethrough" />
+                                            <Setter Property="Opacity" Value="0.55" />
+                                        </Style>
+                                        <Style Selector="TextBox.completed">
+                                            <Setter Property="Opacity" Value="0.6" />
+                                        </Style>
+                                    </TextBox.Styles>
+                                </TextBox>
+                                <Button Grid.Column="2"
+                                        Content="▲"
+                                        FontSize="8"
+                                        Padding="4,2"
+                                        MinWidth="22"
+                                        MinHeight="22"
+                                        Margin="4,0,0,0"
+                                        Background="Transparent"
+                                        Foreground="{StaticResource TextMutedBrush}"
+                                        Command="{Binding $parent[Window].DataContext.MoveChecklistItemUpCommand}"
+                                        CommandParameter="{Binding .}" />
+                                <Button Grid.Column="3"
+                                        Content="▼"
+                                        FontSize="8"
+                                        Padding="4,2"
+                                        MinWidth="22"
+                                        MinHeight="22"
+                                        Margin="2,0,0,0"
+                                        Background="Transparent"
+                                        Foreground="{StaticResource TextMutedBrush}"
+                                        Command="{Binding $parent[Window].DataContext.MoveChecklistItemDownCommand}"
+                                        CommandParameter="{Binding .}" />
+                                <Button Grid.Column="4"
+                                        Content="×"
+                                        FontSize="11"
+                                        Padding="4,2"
+                                        MinWidth="22"
+                                        MinHeight="22"
+                                        Margin="4,0,0,0"
+                                        Background="Transparent"
+                                        Foreground="{StaticResource TextMutedBrush}"
+                                        Command="{Binding $parent[Window].DataContext.RemoveChecklistItemCommand}"
+                                        CommandParameter="{Binding .}" />
+                            </Grid>
+                        </Border>
+                    </DataTemplate>
+                </ItemsControl.ItemTemplate>
+            </ItemsControl>
+
+            <TextBlock Text="No subtasks yet. Add one above."
+                       FontSize="11"
+                       Foreground="{StaticResource TextMutedBrush}"
+                       IsVisible="{Binding HasChecklist, Converter={x:Static converters:InverseBoolToVisibilityConverter.Instance}}" />
+
+            <!-- Footer -->
+            <Grid ColumnDefinitions="*,Auto" Margin="0,8,0,0">
+                <Button Grid.Column="1"
+                        Content="Close"
+                        FontSize="12"
+                        Padding="12,5"
+                        MinHeight="28"
+                        Background="{StaticResource SurfaceBrush}"
+                        Foreground="{StaticResource TextSecondaryBrush}"
+                        BorderBrush="{StaticResource BorderBrush}"
+                        Command="{Binding CloseCommand}" />
+            </Grid>
+
+        </StackPanel>
+    </ScrollViewer>
+
+</Window>

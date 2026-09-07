@@ -1,0 +1,69 @@
+<Window xmlns="https://github.com/avaloniaui"
+         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+         xmlns:vm="using:KanTab.ViewModels"
+         xmlns:converters="using:KanTab.Converters"
+         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+         mc:Ignorable="d" d:DesignWidth="400" d:DesignHeight="220"
+         x:Class="KanTab.Views.BoardDialog"
+         x:DataType="vm:BoardDialogViewModel"
+         Title="New Board"
+         Width="400"
+         MinWidth="360"
+         SizeToContent="Height"
+         WindowStartupLocation="CenterOwner"
+         CanResize="False"
+         Background="{StaticResource WindowBackgroundBrush}">
+
+    <Design.DataContext>
+        <vm:BoardDialogViewModel />
+    </Design.DataContext>
+
+    <StackPanel Margin="20,16" Spacing="12">
+
+        <TextBlock Text="{Binding DialogTitle}"
+                   FontSize="14"
+                   FontWeight="SemiBold"
+                   Foreground="{StaticResource TextPrimaryBrush}" />
+
+        <TextBlock Text="Board Name"
+                   FontSize="12"
+                   Foreground="{StaticResource TextSecondaryBrush}" />
+        <TextBox Text="{Binding BoardName}"
+                 PlaceholderText="Enter board name..."
+                 FontSize="13"
+                 Background="{StaticResource SurfaceBrush}"
+                 Foreground="{StaticResource TextPrimaryBrush}"
+                 BorderBrush="{StaticResource BorderBrush}" />
+
+        <!-- Validation -->
+        <TextBlock Text="{Binding ValidationMessage}"
+                   FontSize="11"
+                   Foreground="#E5534B"
+                   IsVisible="{Binding ValidationMessage, Converter={x:Static converters:StringIsNotNullOrEmptyConverter.Instance}}" />
+
+        <!-- Buttons -->
+        <Grid ColumnDefinitions="Auto,Auto" HorizontalAlignment="Right" Margin="0,4,0,0">
+            <Button Grid.Column="0"
+                    Content="Cancel"
+                    Margin="0,0,8,0"
+                    FontSize="12"
+                    Padding="10,5"
+                    MinHeight="28"
+                    Background="Transparent"
+                    Foreground="{StaticResource TextSecondaryBrush}"
+                    BorderBrush="{StaticResource BorderBrush}"
+                    Command="{Binding CancelCommand}" />
+            <Button Grid.Column="1"
+                    Content="Save"
+                    FontSize="12"
+                    Padding="12,5"
+                    MinHeight="28"
+                    Background="{StaticResource AccentBrush}"
+                    Foreground="White"
+                    Command="{Binding SaveCommand}" />
+        </Grid>
+
+    </StackPanel>
+
+</Window>

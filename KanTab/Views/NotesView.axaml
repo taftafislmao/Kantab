@@ -1,0 +1,291 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:vm="using:KanTab.ViewModels"
+             xmlns:converters="using:KanTab.Converters"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="600"
+             x:Class="KanTab.Views.NotesView"
+             x:Name="Root"
+             x:DataType="vm:NotesViewModel">
+
+    <Design.DataContext>
+        <vm:NotesViewModel />
+    </Design.DataContext>
+
+    <Grid x:Name="RootGrid" RowDefinitions="Auto,*" Margin="24,20,24,24">
+
+        <!-- ==================== PAGE HEADER ==================== -->
+        <Grid Grid.Row="0" ColumnDefinitions="*,Auto" Margin="0,0,0,16">
+            <StackPanel Grid.Column="0" Spacing="3">
+                <TextBlock Text="Notes"
+                           FontSize="22"
+                           FontWeight="SemiBold"
+                           Foreground="{StaticResource TextPrimaryBrush}" />
+                <TextBlock Text="Capture ideas, plans, and information in one place."
+                           FontSize="12"
+                           Foreground="{StaticResource TextSecondaryBrush}" />
+            </StackPanel>
+
+            <Button Grid.Column="1"
+                    Content="+ New Note"
+                    VerticalAlignment="Center"
+                    Padding="10,5"
+                    MinHeight="28"
+                    FontSize="12"
+                    Background="{StaticResource AccentBrush}"
+                    Foreground="White"
+                    Command="{Binding NewNoteCommand}"
+                    ToolTip.Tip="Create a new note" />
+        </Grid>
+
+        <!-- ==================== NOTES WORKSPACE ==================== -->
+        <Grid Grid.Row="1" x:Name="WorkspaceGrid" ColumnDefinitions="260,*" ColumnSpacing="12">
+
+            <!-- Notes list -->
+            <Border x:Name="NotesListPane"
+                    Grid.Column="0"
+                    Background="{StaticResource SurfaceBrush}"
+                    BorderBrush="{StaticResource BorderBrush}"
+                    BorderThickness="1"
+                    CornerRadius="4"
+                    Padding="12">
+                <Grid RowDefinitions="Auto,*">
+                    <Grid Grid.Row="0" ColumnDefinitions="*,Auto" Margin="0,0,0,10">
+                        <TextBlock Text="All Notes"
+                                   FontSize="13"
+                                   FontWeight="SemiBold"
+                                   Foreground="{StaticResource TextPrimaryBrush}"
+                                   VerticalAlignment="Center" />
+                        <TextBlock Grid.Column="1"
+                                   Text="{Binding Notes.Count}"
+                                   FontSize="11"
+                                   Foreground="{StaticResource TextMutedBrush}"
+                                   VerticalAlignment="Center" />
+                    </Grid>
+
+                    <Grid Grid.Row="1" RowDefinitions="Auto,*">
+                        <Grid Grid.Row="0" ColumnDefinitions="*,Auto" Margin="0,0,0,10">
+                            <TextBox Grid.Column="0"
+                                     Text="{Binding SearchText, UpdateSourceTrigger=PropertyChanged}"
+                                     PlaceholderText="Search notes"
+                                     FontSize="12"
+                                     Background="{StaticResource WindowBackgroundBrush}"
+                                     Foreground="{StaticResource TextPrimaryBrush}"
+                                     BorderBrush="{StaticResource BorderBrush}"
+                                     ToolTip.Tip="Search note titles and content" />
+                            <Button Grid.Column="1"
+                                    Content="×"
+                                    Margin="4,0,0,0"
+                                    Padding="6,2"
+                                    FontSize="13"
+                                    Background="Transparent"
+                                    Foreground="{StaticResource TextMutedBrush}"
+                                    IsVisible="{Binding HasSearchText}"
+                                    Command="{Binding ClearSearchCommand}"
+                                    ToolTip.Tip="Clear search" />
+                        </Grid>
+
+                        <ScrollViewer Grid.Row="1" VerticalScrollBarVisibility="Auto">
+                            <StackPanel>
+                                <TextBlock Text="No notes yet"
+                                           FontSize="13"
+                                           Foreground="{StaticResource TextSecondaryBrush}"
+                                           Margin="4,18,4,3"
+                                           IsVisible="{Binding HasNoNotes}" />
+                                <TextBlock Text="Create one to start capturing ideas."
+                                           FontSize="11"
+                                           TextWrapping="Wrap"
+                                           Foreground="{StaticResource TextMutedBrush}"
+                                           Margin="4,0,4,0"
+                                           IsVisible="{Binding HasNoNotes}" />
+                                <TextBlock Text="No notes match your search."
+                                           FontSize="13"
+                                           TextWrapping="Wrap"
+                                           Foreground="{StaticResource TextSecondaryBrush}"
+                                           Margin="4,18,4,0"
+                                           IsVisible="{Binding HasNoSearchMatches}" />
+
+                                <ItemsControl ItemsSource="{Binding FilteredNotes}"
+                                              IsVisible="{Binding HasNotesToShow}">
+                                    <ItemsControl.ItemTemplate>
+                                        <DataTemplate x:DataType="vm:NoteListItemViewModel">
+                                            <Border Classes.selected="{Binding IsSelected}"
+                                                    BorderBrush="{StaticResource DividerBrush}"
+                                                    BorderThickness="0,0,0,1"
+                                                    Padding="8,10"
+                                                    Margin="0,0,0,1">
+                                                <Border.Styles>
+                                                    <Style Selector="Border:pointerover">
+                                                        <Setter Property="Background" Value="{StaticResource HoverBackgroundBrush}" />
+                                                    </Style>
+                                                    <Style Selector="Border.selected">
+                                                        <Setter Property="Background" Value="{StaticResource SelectedBackgroundBrush}" />
+                                                    </Style>
+                                                </Border.Styles>
+
+                                                <Grid ColumnDefinitions="*,Auto" RowDefinitions="Auto,Auto,Auto"
+                                                      PointerPressed="NoteItem_PointerPressed">
+                                                    <StackPanel Grid.Column="0" Grid.Row="0" Orientation="Horizontal" Spacing="5">
+                                                        <TextBlock Text="●"
+                                                                   FontSize="8"
+                                                                   Foreground="{StaticResource AccentBrush}"
+                                                                   VerticalAlignment="Center"
+                                                                   IsVisible="{Binding IsPinned}"
+                                                                   ToolTip.Tip="Pinned" />
+                                                        <TextBlock Text="{Binding Title}"
+                                                                   FontSize="12"
+                                                                   FontWeight="SemiBold"
+                                                                   Foreground="{StaticResource TextPrimaryBrush}"
+                                                                   TextTrimming="CharacterEllipsis" />
+                                                    </StackPanel>
+                                                    <TextBlock Grid.Column="1" Grid.Row="0"
+                                                               Text="{Binding UpdatedLabel}"
+                                                               FontSize="10"
+                                                               Foreground="{StaticResource TextMutedBrush}"
+                                                               VerticalAlignment="Center"
+                                                               Margin="8,0,0,0" />
+                                                    <TextBlock Grid.Column="0" Grid.Row="1" Grid.ColumnSpan="2"
+                                                               Text="{Binding Preview}"
+                                                               FontSize="11"
+                                                               Foreground="{StaticResource TextSecondaryBrush}"
+                                                               TextTrimming="CharacterEllipsis"
+                                                               Margin="0,4,0,0" />
+                                                    <Button Grid.Column="1" Grid.Row="2"
+                                                            Content="···"
+                                                            FontSize="11"
+                                                            Padding="5,1"
+                                                            MinWidth="24"
+                                                            Background="Transparent"
+                                                            Foreground="{StaticResource TextMutedBrush}"
+                                                            HorizontalAlignment="Right"
+                                                            Margin="0,4,0,0"
+                                                            Command="{Binding DataContext.DeleteNoteCommand, ElementName=Root}"
+                                                            CommandParameter="{Binding Note}"
+                                                            ToolTip.Tip="Delete note">
+                                                        <Button.Styles>
+                                                            <Style Selector="Button:pointerover">
+                                                                <Setter Property="Background" Value="{StaticResource HoverBackgroundBrush}" />
+                                                                <Setter Property="Foreground" Value="{StaticResource TextSecondaryBrush}" />
+                                                            </Style>
+                                                        </Button.Styles>
+                                                    </Button>
+                                                </Grid>
+                                            </Border>
+                                        </DataTemplate>
+                                    </ItemsControl.ItemTemplate>
+                                </ItemsControl>
+                            </StackPanel>
+                        </ScrollViewer>
+                    </Grid>
+                </Grid>
+            </Border>
+
+            <!-- Selected note editor -->
+            <Border x:Name="NotesEditorPane"
+                    Grid.Column="1"
+                    Background="{StaticResource WindowBackgroundBrush}"
+                    BorderBrush="{StaticResource BorderBrush}"
+                    BorderThickness="1"
+                    CornerRadius="4"
+                    Padding="20">
+                <Grid RowDefinitions="Auto,Auto,*,Auto">
+                    <Grid Grid.Row="0" ColumnDefinitions="Auto,*,Auto,Auto" Margin="0,0,0,14">
+                        <Button Grid.Column="0"
+                                Content="‹ Notes"
+                                Padding="6,4"
+                                Margin="0,0,10,0"
+                                FontSize="12"
+                                Background="Transparent"
+                                Foreground="{StaticResource TextSecondaryBrush}"
+                                IsVisible="{Binding IsCompactLayout}"
+                                Command="{Binding BackToListCommand}"
+                                ToolTip.Tip="Back to notes list" />
+                        <TextBlock Grid.Column="1"
+                                   Text="{Binding SaveStatus}"
+                                   FontSize="11"
+                                   Foreground="{StaticResource TextMutedBrush}"
+                                   VerticalAlignment="Center"
+                                   IsVisible="{Binding HasSelectedNote}" />
+                        <Button Grid.Column="2"
+                                Content="{Binding PinButtonText}"
+                                Padding="9,4"
+                                Margin="8,0,6,0"
+                                FontSize="12"
+                                Background="Transparent"
+                                Foreground="{StaticResource TextSecondaryBrush}"
+                                BorderBrush="{StaticResource BorderBrush}"
+                                IsVisible="{Binding HasSelectedNote}"
+                                Command="{Binding TogglePinCommand}"
+                                ToolTip.Tip="Pin or unpin this note" />
+                        <Button Grid.Column="3"
+                                Content="Delete"
+                                Padding="9,4"
+                                FontSize="12"
+                                Background="Transparent"
+                                Foreground="#E5534B"
+                                BorderBrush="{StaticResource BorderBrush}"
+                                IsVisible="{Binding HasSelectedNote}"
+                                Command="{Binding DeleteCurrentNoteCommand}"
+                                ToolTip.Tip="Delete this note" />
+                    </Grid>
+
+                    <TextBox x:Name="NoteTitleBox"
+                             Grid.Row="1"
+                             Text="{Binding SelectedNote.Title, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                             FontSize="20"
+                             FontWeight="SemiBold"
+                             Background="Transparent"
+                             Foreground="{StaticResource TextPrimaryBrush}"
+                             BorderThickness="0"
+                             PlaceholderText="Untitled note"
+                             IsVisible="{Binding HasSelectedNote}"
+                             ToolTip.Tip="Note title" />
+
+                    <TextBox x:Name="NoteContentBox"
+                             Grid.Row="2"
+                             Text="{Binding SelectedNote.Content, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                             AcceptsReturn="True"
+                             TextWrapping="Wrap"
+                             VerticalContentAlignment="Top"
+                             FontSize="14"
+                             LineHeight="23"
+                             Background="Transparent"
+                             Foreground="{StaticResource TextPrimaryBrush}"
+                             BorderThickness="0"
+                             Padding="0,16,0,16"
+                             PlaceholderText="Start writing…"
+                             IsVisible="{Binding HasSelectedNote}"
+                             ToolTip.Tip="Note content" />
+
+                    <StackPanel Grid.Row="3" Spacing="4">
+                        <TextBlock Text="{Binding LastUpdatedText}"
+                                   FontSize="10"
+                                   Foreground="{StaticResource TextMutedBrush}"
+                                   IsVisible="{Binding HasSelectedNote}" />
+                        <TextBlock Text="{Binding StorageErrorMessage}"
+                                   FontSize="10"
+                                   TextWrapping="Wrap"
+                                   Foreground="#E5A04B"
+                                   IsVisible="{Binding StorageErrorMessage, Converter={x:Static converters:StringIsNotNullOrEmptyConverter.Instance}}" />
+                    </StackPanel>
+
+                    <StackPanel Grid.Row="1" Grid.RowSpan="3"
+                                VerticalAlignment="Center"
+                                HorizontalAlignment="Center"
+                                Spacing="6"
+                                IsVisible="{Binding HasNoSelectedNote}">
+                        <TextBlock Text="Select a note to start writing"
+                                   FontSize="15"
+                                   Foreground="{StaticResource TextSecondaryBrush}"
+                                   HorizontalAlignment="Center" />
+                        <TextBlock Text="Your notes will stay available here whenever you return."
+                                   FontSize="11"
+                                   Foreground="{StaticResource TextMutedBrush}"
+                                   HorizontalAlignment="Center" />
+                    </StackPanel>
+                </Grid>
+            </Border>
+        </Grid>
+    </Grid>
+</UserControl>

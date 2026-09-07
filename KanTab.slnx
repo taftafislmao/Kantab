@@ -1,0 +1,4 @@
+<Solution>
+  <Project Path="KanTab.Tests/KanTab.Tests.csproj" />
+  <Project Path="KanTab/KanTab.csproj" />
+</Solution>

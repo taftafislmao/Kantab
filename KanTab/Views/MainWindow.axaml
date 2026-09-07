@@ -1,0 +1,345 @@
+<Window xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:vm="using:KanTab.ViewModels"
+        xmlns:converters="using:KanTab.Converters"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        mc:Ignorable="d" d:DesignWidth="1000" d:DesignHeight="600"
+        x:Class="KanTab.Views.MainWindow"
+        x:DataType="vm:MainWindowViewModel"
+        Icon="/Assets/avalonia-logo.ico"
+        Title="KanTab"
+        Width="1000"
+        Height="600"
+        MinWidth="600"
+        MinHeight="400"
+        Background="{StaticResource WindowBackgroundBrush}">
+
+    <Design.DataContext>
+        <vm:MainWindowViewModel />
+    </Design.DataContext>
+
+    <Grid ColumnDefinitions="200,*">
+
+        <!-- ==================== SIDEBAR ==================== -->
+        <Border Grid.Column="0"
+                Background="{StaticResource SidebarBackgroundBrush}"
+                BorderBrush="{StaticResource BorderBrush}"
+                BorderThickness="0,0,1,0">
+
+            <Grid RowDefinitions="Auto,Auto,Auto,*">
+
+                <!-- Branding -->
+                <StackPanel Grid.Row="0" Margin="16,16,16,8">
+                    <TextBlock Text="KanTab"
+                               FontSize="16"
+                               FontWeight="SemiBold"
+                               Foreground="{StaticResource TextPrimaryBrush}" />
+                    <TextBlock Text="v1.0.0"
+                               FontSize="11"
+                               Foreground="{StaticResource TextMutedBrush}"
+                               Margin="0,2,0,0" />
+                </StackPanel>
+
+                <!-- Global Search -->
+                <Grid Grid.Row="1" Margin="8,8,8,0" ColumnDefinitions="*,Auto">
+                    <TextBox x:Name="GlobalSearchBox"
+                             Grid.Column="0"
+                             Text="{Binding GlobalSearch.Query, UpdateSourceTrigger=PropertyChanged}"
+                             PlaceholderText="Search…  (Ctrl+K)"
+                             FontSize="12"
+                             Padding="8,4"
+                             Background="{StaticResource SurfaceBrush}"
+                             Foreground="{StaticResource TextPrimaryBrush}"
+                             BorderBrush="{StaticResource BorderBrush}"
+                             CornerRadius="3" />
+                    <Button Grid.Column="1"
+                            Content="×"
+                            Margin="4,0,0,0"
+                            Padding="6,2"
+                            FontSize="13"
+                            Background="Transparent"
+                            Foreground="{StaticResource TextMutedBrush}"
+                            IsVisible="{Binding GlobalSearch.HasQuery}"
+                            Command="{Binding GlobalSearch.ClearCommand}"
+                            ToolTip.Tip="Clear search (Esc)" />
+                </Grid>
+
+                <!-- Divider -->
+                <Rectangle Grid.Row="2"
+                           Height="1"
+                           Fill="{StaticResource DividerBrush}"
+                           Margin="12,8" />
+
+                <!-- Navigation -->
+                <ListBox Grid.Row="3"
+                         ItemsSource="{Binding NavItems}"
+                         SelectedItem="{Binding SelectedNavItem, Mode=TwoWay}"
+                         Background="Transparent"
+                         BorderThickness="0"
+                         Padding="0"
+                         Margin="8,4,8,0"
+                         ScrollViewer.HorizontalScrollBarVisibility="Disabled"
+                         ScrollViewer.VerticalScrollBarVisibility="Auto">
+                    <ListBox.Styles>
+                        <Style Selector="ListBoxItem">
+                            <Setter Property="HorizontalAlignment" Value="Stretch" />
+                            <Setter Property="HorizontalContentAlignment" Value="Left" />
+                            <Setter Property="VerticalContentAlignment" Value="Center" />
+                            <Setter Property="MinHeight" Value="36" />
+                            <Setter Property="Padding" Value="14,0" />
+                            <Setter Property="Margin" Value="0" />
+                            <Setter Property="Foreground" Value="{StaticResource TextPrimaryBrush}" />
+                            <Setter Property="FontSize" Value="13" />
+                            <Setter Property="Background" Value="Transparent" />
+                            <Setter Property="BorderThickness" Value="0" />
+                            <Setter Property="CornerRadius" Value="0" />
+                        </Style>
+                        <Style Selector="ListBoxItem:pointerover">
+                            <Setter Property="Background" Value="{StaticResource HoverBackgroundBrush}" />
+                        </Style>
+                        <Style Selector="ListBoxItem:selected">
+                            <Setter Property="Background" Value="{StaticResource SelectedBackgroundBrush}" />
+                        </Style>
+                        <Style Selector="ListBoxItem:selected:pointerover">
+                            <Setter Property="Background" Value="{StaticResource SelectedBackgroundBrush}" />
+                        </Style>
+                    </ListBox.Styles>
+                    <ListBox.ItemTemplate>
+                        <DataTemplate DataType="vm:NavItem">
+                            <TextBlock Text="{Binding Label}" />
+                        </DataTemplate>
+                    </ListBox.ItemTemplate>
+                </ListBox>
+
+            </Grid>
+        </Border>
+
+        <!-- ==================== MAIN WORKSPACE WITH SEARCH + PALETTE OVERLAYS ========= -->
+        <Grid Grid.Column="1">
+            <Border Background="{StaticResource ContentBackgroundBrush}">
+                <ContentControl Content="{Binding CurrentSection}" />
+            </Border>
+
+            <!-- Command Palette Overlay -->
+            <Border x:Name="CommandPaletteOverlay"
+                    IsVisible="{Binding CommandPalette.IsOpen}"
+                    Background="#66000000"
+                    ZIndex="20">
+                <Border Background="{StaticResource WindowBackgroundBrush}"
+                        BorderBrush="{StaticResource BorderBrush}"
+                        BorderThickness="1"
+                        CornerRadius="3"
+                        Width="420"
+                        MaxHeight="320"
+                        HorizontalAlignment="Center"
+                        VerticalAlignment="Top"
+                        Margin="0,36,0,0"
+                        Padding="0">
+                    <Grid RowDefinitions="Auto,1,*">
+                        <TextBox x:Name="CommandPaletteBox"
+                                 Grid.Row="0"
+                                 Text="{Binding CommandPalette.Query, UpdateSourceTrigger=PropertyChanged}"
+                                 PlaceholderText="Search commands..."
+                                 FontSize="12"
+                                 Margin="8,8,8,6"
+                                 Padding="8,5"
+                                 Background="{StaticResource SurfaceBrush}"
+                                 Foreground="{StaticResource TextPrimaryBrush}"
+                                 BorderBrush="{StaticResource BorderBrush}"
+                                 CornerRadius="2" />
+                        <Rectangle Grid.Row="1" Height="1" Fill="{StaticResource DividerBrush}" />
+                        <ScrollViewer Grid.Row="2" MaxHeight="220" Padding="6,4" VerticalScrollBarVisibility="Auto">
+                            <StackPanel>
+                                <ListBox ItemsSource="{Binding CommandPalette.Filtered}"
+                                         SelectedIndex="{Binding CommandPalette.SelectedIndex, Mode=TwoWay}"
+                                         Background="Transparent" BorderThickness="0" Padding="0">
+                                    <ListBox.Styles>
+                                        <Style Selector="ListBoxItem">
+                                            <Setter Property="Padding" Value="0" />
+                                            <Setter Property="Margin" Value="0,1" />
+                                            <Setter Property="Background" Value="Transparent" />
+                                        </Style>
+                                        <Style Selector="ListBoxItem:pointerover">
+                                            <Setter Property="Background" Value="{StaticResource HoverBackgroundBrush}" />
+                                        </Style>
+                                        <Style Selector="ListBoxItem:selected">
+                                            <Setter Property="Background" Value="{StaticResource SelectedBackgroundBrush}" />
+                                        </Style>
+                                        <Style Selector="ListBoxItem:selected:pointerover">
+                                            <Setter Property="Background" Value="{StaticResource SelectedBackgroundBrush}" />
+                                        </Style>
+                                    </ListBox.Styles>
+                                    <ListBox.ItemTemplate>
+                                        <DataTemplate DataType="vm:PaletteCommand">
+                                            <Button Command="{Binding $parent[Window].DataContext.CommandPalette.ExecuteCommandCommand}" CommandParameter="{Binding}"
+                                                    Background="Transparent" BorderThickness="0" Padding="0"
+                                                    HorizontalAlignment="Stretch" HorizontalContentAlignment="Stretch">
+                                                <Border Padding="10,6" CornerRadius="2">
+                                                    <Grid ColumnDefinitions="Auto,*,Auto">
+                                                        <TextBlock Grid.Column="0" Text="›" FontSize="12" Foreground="{StaticResource AccentBrush}" Margin="0,0,8,0" VerticalAlignment="Center" />
+                                                        <TextBlock Grid.Column="1" Text="{Binding Title}" FontSize="12" Foreground="{StaticResource TextPrimaryBrush}" VerticalAlignment="Center" />
+                                                        <TextBlock Grid.Column="2" Text="{Binding Hint}" FontSize="10" Foreground="{StaticResource TextMutedBrush}" VerticalAlignment="Center" Margin="8,0,0,0"
+                                                                   IsVisible="{Binding Hint, Converter={x:Static converters:StringIsNotNullOrEmptyConverter.Instance}}" />
+                                                    </Grid>
+                                                </Border>
+                                            </Button>
+                                        </DataTemplate>
+                                    </ListBox.ItemTemplate>
+                                </ListBox>
+                                <TextBlock Text="{Binding CommandPalette.EmptyText}" IsVisible="{Binding CommandPalette.IsEmpty}" Foreground="{StaticResource TextMutedBrush}" FontSize="11" HorizontalAlignment="Center" Margin="0,14" />
+                            </StackPanel>
+                        </ScrollViewer>
+                    </Grid>
+                </Border>
+            </Border>
+
+            <!-- Global Search Overlay -->
+            <Border x:Name="SearchOverlay"
+                    IsVisible="{Binding GlobalSearch.IsOpen}"
+                    Background="#66000000"
+                    ZIndex="10">
+                <Border Background="{StaticResource SurfaceBrush}"
+                        BorderBrush="{StaticResource BorderBrush}"
+                        BorderThickness="1"
+                        CornerRadius="4"
+                        MaxWidth="520"
+                        MaxHeight="420"
+                        HorizontalAlignment="Center"
+                        VerticalAlignment="Top"
+                        Margin="0,24,0,0"
+                        Padding="0">
+                    <ScrollViewer MaxHeight="400" Padding="8" VerticalScrollBarVisibility="Auto">
+                        <StackPanel Spacing="10">
+
+                            <!-- Tasks Group -->
+                            <StackPanel IsVisible="{Binding GlobalSearch.HasTaskResults}">
+                                <TextBlock Text="Tasks" FontSize="10" FontWeight="SemiBold" Foreground="{StaticResource TextSecondaryBrush}" Margin="4,0,0,4"/>
+                                <ItemsControl ItemsSource="{Binding GlobalSearch.TaskHits}">
+                                    <ItemsControl.ItemTemplate>
+                                        <DataTemplate DataType="vm:TaskHitViewModel">
+                                            <Button Command="{Binding $parent[Window].DataContext.GlobalSearch.OpenTaskHitCommand}" CommandParameter="{Binding}"
+                                                    Background="Transparent" BorderThickness="0" Padding="0" Margin="0,1"
+                                                    HorizontalAlignment="Stretch" HorizontalContentAlignment="Stretch">
+                                                <Border Padding="8,6" CornerRadius="3" Classes.selected="{Binding IsSelected}">
+                                                    <Border.Styles>
+                                                        <Style Selector="Border.selected">
+                                                            <Setter Property="Background" Value="{StaticResource SelectedBackgroundBrush}" />
+                                                        </Style>
+                                                    </Border.Styles>
+                                                    <Grid ColumnDefinitions="Auto,*,Auto" RowDefinitions="Auto,Auto">
+                                                        <Ellipse Grid.Row="0" Grid.Column="0" Width="6" Height="6" VerticalAlignment="Center" Margin="0,0,6,0"
+                                                                 Fill="{Binding Priority, Converter={x:Static converters:PriorityToBrushConverter.Instance}}"/>
+                                                        <TextBlock Grid.Row="0" Grid.Column="1" Text="{Binding Title}" FontSize="12" Foreground="{StaticResource TextPrimaryBrush}" TextTrimming="CharacterEllipsis"/>
+                                                        <TextBlock Grid.Row="0" Grid.Column="2" Text="{Binding DueDateDisplay}" FontSize="10" Foreground="{StaticResource TextMutedBrush}"
+                                                                   IsVisible="{Binding DueDateDisplay, Converter={x:Static converters:StringIsNotNullOrEmptyConverter.Instance}}" Margin="6,0,0,0" VerticalAlignment="Center"/>
+                                                        <StackPanel Grid.Row="1" Grid.Column="1" Grid.ColumnSpan="2" Orientation="Horizontal" Spacing="6" Margin="12,2,0,0">
+                                                            <TextBlock Text="{Binding BoardName}" FontSize="10" Foreground="{StaticResource TextSecondaryBrush}"/>
+                                                            <TextBlock Text="›" FontSize="10" Foreground="{StaticResource TextMutedBrush}"/>
+                                                            <TextBlock Text="{Binding ColumnName}" FontSize="10" Foreground="{StaticResource TextSecondaryBrush}"/>
+                                                        </StackPanel>
+                                                    </Grid>
+                                                </Border>
+                                            </Button>
+                                        </DataTemplate>
+                                    </ItemsControl.ItemTemplate>
+                                </ItemsControl>
+                            </StackPanel>
+
+                            <!-- Notes Group -->
+                            <StackPanel IsVisible="{Binding GlobalSearch.HasNoteResults}">
+                                <TextBlock Text="Notes" FontSize="10" FontWeight="SemiBold" Foreground="{StaticResource TextSecondaryBrush}" Margin="4,0,0,4"/>
+                                <ItemsControl ItemsSource="{Binding GlobalSearch.NoteHits}">
+                                    <ItemsControl.ItemTemplate>
+                                        <DataTemplate DataType="vm:NoteHitViewModel">
+                                            <Button Command="{Binding $parent[Window].DataContext.GlobalSearch.OpenNoteHitCommand}" CommandParameter="{Binding}"
+                                                    Background="Transparent" BorderThickness="0" Padding="0" Margin="0,1"
+                                                    HorizontalAlignment="Stretch" HorizontalContentAlignment="Stretch">
+                                                <Border Padding="8,6" CornerRadius="3" Classes.selected="{Binding IsSelected}">
+                                                    <Border.Styles>
+                                                        <Style Selector="Border.selected">
+                                                            <Setter Property="Background" Value="{StaticResource SelectedBackgroundBrush}" />
+                                                        </Style>
+                                                    </Border.Styles>
+                                                    <Grid RowDefinitions="Auto,Auto">
+                                                        <Grid ColumnDefinitions="*,Auto">
+                                                            <TextBlock Grid.Column="0" Text="{Binding Title}" FontSize="12" Foreground="{StaticResource TextPrimaryBrush}" TextTrimming="CharacterEllipsis"/>
+                                                            <Border Grid.Column="1" Background="{StaticResource HoverBackgroundBrush}" CornerRadius="2" Padding="4,1" Margin="6,0,0,0"
+                                                                    IsVisible="{Binding IsPinned}">
+                                                                <TextBlock Text="PINNED" FontSize="9" Foreground="{StaticResource TextSecondaryBrush}"/>
+                                                            </Border>
+                                                        </Grid>
+                                                        <TextBlock Grid.Row="1" Text="{Binding Preview}" FontSize="11" Foreground="{StaticResource TextSecondaryBrush}" TextTrimming="CharacterEllipsis" Margin="0,2,0,0" IsVisible="{Binding Preview, Converter={x:Static converters:StringIsNotNullOrEmptyConverter.Instance}}"/>
+                                                    </Grid>
+                                                </Border>
+                                            </Button>
+                                        </DataTemplate>
+                                    </ItemsControl.ItemTemplate>
+                                </ItemsControl>
+                            </StackPanel>
+
+                            <!-- Boards Group -->
+                            <StackPanel IsVisible="{Binding GlobalSearch.HasBoardResults}">
+                                <TextBlock Text="Boards" FontSize="10" FontWeight="SemiBold" Foreground="{StaticResource TextSecondaryBrush}" Margin="4,0,0,4"/>
+                                <ItemsControl ItemsSource="{Binding GlobalSearch.BoardHits}">
+                                    <ItemsControl.ItemTemplate>
+                                        <DataTemplate DataType="vm:BoardHitViewModel">
+                                            <Button Command="{Binding $parent[Window].DataContext.GlobalSearch.OpenBoardHitCommand}" CommandParameter="{Binding}"
+                                                    Background="Transparent" BorderThickness="0" Padding="0" Margin="0,1"
+                                                    HorizontalAlignment="Stretch" HorizontalContentAlignment="Stretch">
+                                                <Border Padding="8,6" CornerRadius="3" Classes.selected="{Binding IsSelected}">
+                                                    <Border.Styles>
+                                                        <Style Selector="Border.selected">
+                                                            <Setter Property="Background" Value="{StaticResource SelectedBackgroundBrush}" />
+                                                        </Style>
+                                                    </Border.Styles>
+                                                    <Grid ColumnDefinitions="*,Auto">
+                                                        <TextBlock Grid.Column="0" Text="{Binding Name}" FontSize="12" Foreground="{StaticResource TextPrimaryBrush}" VerticalAlignment="Center"/>
+                                                        <TextBlock Grid.Column="1" Text="{Binding ColumnCount, StringFormat='{}{0} columns'}" FontSize="10" Foreground="{StaticResource TextMutedBrush}" VerticalAlignment="Center"/>
+                                                    </Grid>
+                                                </Border>
+                                            </Button>
+                                        </DataTemplate>
+                                    </ItemsControl.ItemTemplate>
+                                </ItemsControl>
+                            </StackPanel>
+
+                            <!-- Tags Group -->
+                            <StackPanel IsVisible="{Binding GlobalSearch.HasTagResults}">
+                                <TextBlock Text="Tags" FontSize="10" FontWeight="SemiBold" Foreground="{StaticResource TextSecondaryBrush}" Margin="4,0,0,4"/>
+                                <ItemsControl ItemsSource="{Binding GlobalSearch.TagHits}">
+                                    <ItemsControl.ItemTemplate>
+                                        <DataTemplate DataType="vm:TagHitViewModel">
+                                            <Button Command="{Binding $parent[Window].DataContext.GlobalSearch.OpenTagHitCommand}" CommandParameter="{Binding}"
+                                                    Background="Transparent" BorderThickness="0" Padding="0" Margin="0,1"
+                                                    HorizontalAlignment="Stretch" HorizontalContentAlignment="Stretch">
+                                                <Border Padding="8,5" CornerRadius="3" Classes.selected="{Binding IsSelected}">
+                                                    <Border.Styles>
+                                                        <Style Selector="Border.selected">
+                                                            <Setter Property="Background" Value="{StaticResource SelectedBackgroundBrush}" />
+                                                        </Style>
+                                                    </Border.Styles>
+                                                    <Grid ColumnDefinitions="*,Auto">
+                                                        <TextBlock Grid.Column="0" Text="{Binding Display}" FontSize="12" Foreground="{StaticResource TextPrimaryBrush}"/>
+                                                        <TextBlock Grid.Column="1" Text="{Binding Count, StringFormat='{}{0} tasks'}" FontSize="10" Foreground="{StaticResource TextMutedBrush}" VerticalAlignment="Center"/>
+                                                    </Grid>
+                                                </Border>
+                                            </Button>
+                                        </DataTemplate>
+                                    </ItemsControl.ItemTemplate>
+                                </ItemsControl>
+                            </StackPanel>
+
+                            <!-- No results -->
+                            <TextBlock Text="{Binding GlobalSearch.NoResultsText}" IsVisible="{Binding GlobalSearch.NoResults}" Foreground="{StaticResource TextSecondaryBrush}" FontSize="12" HorizontalAlignment="Center" Margin="0,12"/>
+
+                            <!-- Empty query hint (shown when overlay open with empty query? Hidden via IsEmptyQuery but overlay not open then) -->
+                        </StackPanel>
+                    </ScrollViewer>
+                </Border>
+            </Border>
+        </Grid>
+
+    </Grid>
+
+</Window>

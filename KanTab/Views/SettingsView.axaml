@@ -1,0 +1,137 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:vm="using:KanTab.ViewModels"
+             xmlns:converters="using:KanTab.Converters"
+             mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="600"
+             x:Class="KanTab.Views.SettingsView"
+             x:DataType="vm:SettingsViewModel">
+
+    <StackPanel Margin="24"
+                VerticalAlignment="Top"
+                HorizontalAlignment="Left"
+                MaxWidth="600"
+                Spacing="12">
+
+        <TextBlock Text="Settings"
+                   FontSize="22"
+                   FontWeight="SemiBold"
+                   Foreground="{StaticResource TextPrimaryBrush}"
+                   Margin="0,0,0,12" />
+
+        <!-- Account — minimal status only (auth UI lives in first-launch flow) -->
+        <Border Classes="SettingsSection"
+                Margin="0,8,0,0"
+                Padding="16">
+            <StackPanel Spacing="8">
+                <TextBlock Text="Account"
+                           FontSize="16"
+                           FontWeight="SemiBold"
+                           Foreground="{StaticResource TextPrimaryBrush}" />
+                <TextBlock Text="{Binding CurrentUserEmail, FallbackValue='Not signed in'}"
+                           FontSize="13"
+                           Foreground="{StaticResource TextSecondaryBrush}" />
+                <StackPanel Orientation="Horizontal" Spacing="8"
+                            IsVisible="{Binding IsSignedIn, Converter={x:Static converters:BoolToVisibilityConverter.Instance}}">
+                    <Button Content="Sign Out"
+                            Command="{Binding SignOutCommand}"
+                            IsEnabled="{Binding IsLoading, Converter={x:Static converters:InverseBoolToVisibilityConverter.Instance}}"
+                            Classes="Secondary" />
+                </StackPanel>
+                <TextBlock Text="{Binding ErrorMessage, FallbackValue=''}"
+                           FontSize="12"
+                           Foreground="{StaticResource ErrorBrush}"
+                           IsVisible="{Binding ErrorMessage, Converter={x:Static converters:StringIsNotNullOrEmptyConverter.Instance}}" />
+            </StackPanel>
+        </Border>
+
+        <!-- Cloud Sync Status -->
+        <Border Classes="SettingsSection"
+                Margin="0,8,0,0"
+                Padding="16">
+            <StackPanel Spacing="12">
+                <TextBlock Text="Cloud Sync"
+                           FontSize="16"
+                           FontWeight="SemiBold"
+                           Foreground="{StaticResource TextPrimaryBrush}" />
+
+                <StackPanel Orientation="Horizontal"
+                            Spacing="8">
+                    <TextBlock Text="Status:"
+                               FontSize="13"
+                               Foreground="{StaticResource TextSecondaryBrush}" />
+                    <TextBlock Text="{Binding SyncStatus}"
+                               FontSize="13"
+                               FontWeight="SemiBold"
+                               Foreground="{Binding SyncStatus, Converter={x:Static converters:SyncStatusToBrushConverter.Instance}}" />
+                </StackPanel>
+            </StackPanel>
+        </Border>
+
+        <!-- Data -->
+        <Border Classes="SettingsSection"
+                Margin="0,8,0,0"
+                Padding="16">
+            <StackPanel Spacing="10">
+                <TextBlock Text="Data"
+                           FontSize="16"
+                           FontWeight="SemiBold"
+                           Foreground="{StaticResource TextPrimaryBrush}" />
+                <StackPanel Spacing="4">
+                    <Button Content="Export Backup"
+                            Command="{Binding ExportBackupCommand}"
+                            MinWidth="140"
+                            HorizontalAlignment="Left" />
+                    <TextBlock Text="Save a copy of your KanTab data."
+                               FontSize="11"
+                               Foreground="{StaticResource TextMutedBrush}" />
+                </StackPanel>
+                <StackPanel Spacing="4" Margin="0,6,0,0">
+                    <Button Content="Import Backup"
+                            Command="{Binding ImportBackupCommand}"
+                            MinWidth="140"
+                            HorizontalAlignment="Left"
+                            Classes="Secondary" />
+                    <TextBlock Text="Restore KanTab from a backup."
+                               FontSize="11"
+                               Foreground="{StaticResource TextMutedBrush}" />
+                </StackPanel>
+            </StackPanel>
+        </Border>
+
+        <!-- Notifications -->
+        <Border Classes="SettingsSection"
+                Margin="0,8,0,0"
+                Padding="16">
+            <StackPanel Spacing="10">
+                <TextBlock Text="Notifications"
+                           FontSize="16"
+                           FontWeight="SemiBold"
+                           Foreground="{StaticResource TextPrimaryBrush}" />
+                <StackPanel Orientation="Horizontal" Spacing="8">
+                    <TextBlock Text="Task reminders" FontSize="12" Foreground="{StaticResource TextSecondaryBrush}" VerticalAlignment="Center" MinWidth="120" />
+                    <ToggleSwitch IsChecked="{Binding NotificationsEnabled}" OnContent="On" OffContent="Off" />
+                </StackPanel>
+                <StackPanel Orientation="Horizontal" Spacing="8">
+                    <TextBlock Text="Reminder time" FontSize="12" Foreground="{StaticResource TextSecondaryBrush}" VerticalAlignment="Center" MinWidth="120" />
+                    <ComboBox ItemsSource="{Binding ReminderOptions}" SelectedItem="{Binding ReminderLeadMinutes}" MinWidth="160" FontSize="12"
+                              Background="{StaticResource SurfaceBrush}" Foreground="{StaticResource TextPrimaryBrush}" BorderBrush="{StaticResource BorderBrush}" />
+                </StackPanel>
+                <StackPanel Orientation="Horizontal" Spacing="8">
+                    <TextBlock Text="Overdue reminders" FontSize="12" Foreground="{StaticResource TextSecondaryBrush}" VerticalAlignment="Center" MinWidth="120" />
+                    <ToggleSwitch IsChecked="{Binding OverdueNotificationsEnabled}" OnContent="On" OffContent="Off" />
+                </StackPanel>
+            </StackPanel>
+        </Border>
+
+        <!-- Loading Indicator -->
+        <ProgressBar IsVisible="{Binding IsLoading}"
+                     Height="4"
+                     Minimum="0"
+                     Maximum="100"
+                     Value="0"
+                     IsIndeterminate="True" />
+    </StackPanel>
+
+</UserControl>

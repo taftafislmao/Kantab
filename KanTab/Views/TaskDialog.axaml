@@ -1,0 +1,298 @@
+<Window xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:vm="using:KanTab.ViewModels"
+        xmlns:converters="using:KanTab.Converters"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        mc:Ignorable="d" d:DesignWidth="420" d:DesignHeight="480"
+         x:Class="KanTab.Views.TaskDialog"
+         x:DataType="vm:TaskDialogViewModel"
+         Title="Task"
+         Width="623"
+         Height="533"
+         MinWidth="420"
+         MinHeight="420"
+         WindowStartupLocation="CenterOwner"
+         Background="{StaticResource WindowBackgroundBrush}">
+
+    <Design.DataContext>
+        <vm:TaskDialogViewModel />
+    </Design.DataContext>
+
+    <ScrollViewer VerticalScrollBarVisibility="Auto">
+        <StackPanel Margin="20,16" Spacing="12">
+
+            <!-- Title -->
+            <TextBlock Text="Title"
+                       FontSize="12"
+                       Foreground="{StaticResource TextSecondaryBrush}" />
+            <TextBox Text="{Binding Title}"
+                     FontSize="13"
+                     Background="{StaticResource SurfaceBrush}"
+                     Foreground="{StaticResource TextPrimaryBrush}"
+                     BorderBrush="{StaticResource BorderBrush}" />
+
+            <!-- Validation -->
+            <TextBlock Text="{Binding ValidationMessage}"
+                       FontSize="11"
+                       Foreground="#E5534B"
+                       IsVisible="{Binding ValidationMessage, Converter={x:Static converters:StringIsNotNullOrEmptyConverter.Instance}}"
+                       Margin="0,-6,0,0" />
+
+            <!-- Description -->
+            <TextBlock Text="Description"
+                       FontSize="12"
+                       Foreground="{StaticResource TextSecondaryBrush}" />
+            <TextBox Text="{Binding Description}"
+                     AcceptsReturn="True"
+                     TextWrapping="Wrap"
+                     Height="60"
+                     FontSize="13"
+                     Background="{StaticResource SurfaceBrush}"
+                     Foreground="{StaticResource TextPrimaryBrush}"
+                     BorderBrush="{StaticResource BorderBrush}" />
+
+            <!-- Priority and Due Date -->
+            <Grid ColumnDefinitions="*,12,*">
+                <StackPanel Grid.Column="0" Spacing="4">
+                    <TextBlock Text="Priority"
+                               FontSize="12"
+                               Foreground="{StaticResource TextSecondaryBrush}" />
+                    <ComboBox SelectedItem="{Binding SelectedPriority}"
+                              ItemsSource="{Binding Priorities}"
+                              HorizontalAlignment="Stretch"
+                              FontSize="13"
+                              Background="{StaticResource SurfaceBrush}"
+                              Foreground="{StaticResource TextPrimaryBrush}"
+                              BorderBrush="{StaticResource BorderBrush}" />
+                </StackPanel>
+                <StackPanel Grid.Column="2" Spacing="4">
+                    <TextBlock Text="Due date"
+                               FontSize="12"
+                               Foreground="{StaticResource TextSecondaryBrush}" />
+                    <StackPanel Orientation="Horizontal" Spacing="6">
+                        <DatePicker SelectedDate="{Binding DueDateOnly, Converter={x:Static converters:DateOnlyToDateTimeConverter.Instance}}"
+                                    Width="135"
+                                    FontSize="13"
+                                    Background="{StaticResource SurfaceBrush}"
+                                    Foreground="{StaticResource TextPrimaryBrush}"
+                                    BorderBrush="{StaticResource BorderBrush}" />
+                        <TimePicker SelectedTime="{Binding DueTime}"
+                                    ClockIdentifier="12HourClock"
+                                    Width="118"
+                                    FontSize="12"
+                                    Background="{StaticResource SurfaceBrush}"
+                                    Foreground="{StaticResource TextPrimaryBrush}"
+                                    BorderBrush="{StaticResource BorderBrush}"
+                                    IsVisible="{Binding DueDateOnly, Converter={x:Static converters:StringIsNotNullOrEmptyConverter.Instance}}" />
+                    </StackPanel>
+                </StackPanel>
+            </Grid>
+
+            <!-- Column -->
+            <TextBlock Text="Column"
+                       FontSize="12"
+                       Foreground="{StaticResource TextSecondaryBrush}" />
+            <ComboBox SelectedValue="{Binding SelectedColumnId}"
+                      ItemsSource="{Binding AvailableColumns}"
+                      DisplayMemberBinding="{Binding Title}"
+                      SelectedValueBinding="{Binding Id}"
+                      HorizontalAlignment="Stretch"
+                      FontSize="13"
+                      Background="{StaticResource SurfaceBrush}"
+                      Foreground="{StaticResource TextPrimaryBrush}"
+                      BorderBrush="{StaticResource BorderBrush}" />
+
+            <!-- Tags -->
+            <TextBlock Text="Tags"
+                       FontSize="12"
+                       Foreground="{StaticResource TextSecondaryBrush}" />
+            <Grid ColumnDefinitions="*,Auto">
+                <TextBox Grid.Column="0"
+                         Text="{Binding TagInput}"
+                         PlaceholderText="Add tag..."
+                         FontSize="13"
+                         Background="{StaticResource SurfaceBrush}"
+                         Foreground="{StaticResource TextPrimaryBrush}"
+                         BorderBrush="{StaticResource BorderBrush}" />
+                <Button Grid.Column="1"
+                        Content="Add"
+                        Margin="8,0,0,0"
+                        FontSize="12"
+                        Padding="10,6"
+                        Command="{Binding AddTagCommand}" />
+            </Grid>
+
+            <!-- Tag List -->
+            <StackPanel Spacing="4"
+                        IsVisible="{Binding Tags.Count, Converter={x:Static converters:CountToBoolConverter.Instance}}">
+                <ItemsControl ItemsSource="{Binding Tags}">
+                    <ItemsControl.ItemsPanel>
+                        <ItemsPanelTemplate>
+                            <WrapPanel />
+                        </ItemsPanelTemplate>
+                    </ItemsControl.ItemsPanel>
+                    <ItemsControl.ItemTemplate>
+                        <DataTemplate>
+                            <Border Background="{StaticResource SurfaceBrush}"
+                                    BorderBrush="{StaticResource BorderBrush}"
+                                    BorderThickness="1"
+                                    CornerRadius="2"
+                                    Padding="6,2">
+                                <StackPanel Orientation="Horizontal" Spacing="4">
+                                    <TextBlock Text="{Binding .}"
+                                               FontSize="10"
+                                               Foreground="{StaticResource TextSecondaryBrush}" />
+                                    <Button Content="×"
+                                            FontSize="10"
+                                            Padding="0"
+                                            MinWidth="14"
+                                            MinHeight="14"
+                                            Background="Transparent"
+                                            Foreground="{StaticResource TextMutedBrush}"
+                                            Command="{Binding $parent[ItemsControl].DataContext.RemoveTagCommand}"
+                                            CommandParameter="{Binding .}" />
+                                </StackPanel>
+                            </Border>
+                        </DataTemplate>
+                    </ItemsControl.ItemTemplate>
+                </ItemsControl>
+            </StackPanel>
+
+            <!-- Checklist -->
+            <TextBlock Text="Checklist"
+                       FontSize="12"
+                       Foreground="{StaticResource TextSecondaryBrush}" />
+            <StackPanel Orientation="Horizontal" Spacing="8" IsVisible="{Binding HasChecklist}">
+                <TextBlock Text="{Binding ChecklistProgressText}"
+                           FontSize="11"
+                           Foreground="{StaticResource TextMutedBrush}"
+                           VerticalAlignment="Center" />
+                <TextBlock Text="{Binding ChecklistPercentText}"
+                           FontSize="11"
+                           Foreground="{StaticResource TextMutedBrush}"
+                           VerticalAlignment="Center" />
+                <TextBlock Text="completed"
+                           FontSize="11"
+                           Foreground="{StaticResource TextMutedBrush}"
+                           VerticalAlignment="Center"
+                           IsVisible="{Binding HasChecklist}" />
+            </StackPanel>
+            <Grid ColumnDefinitions="*,Auto">
+                <TextBox Grid.Column="0"
+                         Text="{Binding NewChecklistText}"
+                         PlaceholderText="Add checklist item..."
+                         FontSize="13"
+                         Background="{StaticResource SurfaceBrush}"
+                         Foreground="{StaticResource TextPrimaryBrush}"
+                         BorderBrush="{StaticResource BorderBrush}">
+                    <TextBox.KeyBindings>
+                        <KeyBinding Gesture="Enter" Command="{Binding AddChecklistItemCommand}" />
+                    </TextBox.KeyBindings>
+                </TextBox>
+                <Button Grid.Column="1"
+                        Content="Add"
+                        Margin="8,0,0,0"
+                        FontSize="12"
+                        Padding="10,6"
+                        Command="{Binding AddChecklistItemCommand}" />
+            </Grid>
+
+            <ItemsControl ItemsSource="{Binding Checklist}"
+                          IsVisible="{Binding HasChecklist}">
+                <ItemsControl.ItemTemplate>
+                    <DataTemplate>
+                        <Border Background="{StaticResource SurfaceBrush}"
+                                BorderBrush="{StaticResource BorderBrush}"
+                                BorderThickness="1"
+                                CornerRadius="2"
+                                Padding="6,4"
+                                Margin="0,0,0,4">
+                            <Grid ColumnDefinitions="Auto,*,Auto,Auto,Auto">
+                                <CheckBox Grid.Column="0"
+                                          IsChecked="{Binding IsCompleted}"
+                                          VerticalAlignment="Center"
+                                          Margin="0,0,6,0" />
+                                <TextBox Grid.Column="1"
+                                         Text="{Binding Text}"
+                                         FontSize="12"
+                                         VerticalAlignment="Center"
+                                         Background="Transparent"
+                                         BorderThickness="0"
+                                         Foreground="{StaticResource TextPrimaryBrush}"
+                                         Classes.completed="{Binding IsCompleted}">
+                                    <TextBox.Styles>
+                                        <Style Selector="TextBox.completed /template/ TextBlock#PART_TextPresenter">
+                                            <Setter Property="TextDecorations" Value="Strikethrough" />
+                                            <Setter Property="Opacity" Value="0.55" />
+                                        </Style>
+                                        <Style Selector="TextBox.completed">
+                                            <Setter Property="Opacity" Value="0.6" />
+                                        </Style>
+                                    </TextBox.Styles>
+                                </TextBox>
+                                <Button Grid.Column="2"
+                                        Content="▲"
+                                        FontSize="8"
+                                        Padding="4,2"
+                                        MinWidth="22"
+                                        MinHeight="22"
+                                        Margin="4,0,0,0"
+                                        Background="Transparent"
+                                        Foreground="{StaticResource TextMutedBrush}"
+                                        Command="{Binding $parent[ItemsControl].DataContext.MoveChecklistItemUpCommand}"
+                                        CommandParameter="{Binding .}" />
+                                <Button Grid.Column="3"
+                                        Content="▼"
+                                        FontSize="8"
+                                        Padding="4,2"
+                                        MinWidth="22"
+                                        MinHeight="22"
+                                        Margin="2,0,0,0"
+                                        Background="Transparent"
+                                        Foreground="{StaticResource TextMutedBrush}"
+                                        Command="{Binding $parent[ItemsControl].DataContext.MoveChecklistItemDownCommand}"
+                                        CommandParameter="{Binding .}" />
+                                <Button Grid.Column="4"
+                                        Content="×"
+                                        FontSize="11"
+                                        Padding="4,2"
+                                        MinWidth="22"
+                                        MinHeight="22"
+                                        Margin="4,0,0,0"
+                                        Background="Transparent"
+                                        Foreground="{StaticResource TextMutedBrush}"
+                                        Command="{Binding $parent[ItemsControl].DataContext.RemoveChecklistItemCommand}"
+                                        CommandParameter="{Binding .}" />
+                            </Grid>
+                        </Border>
+                    </DataTemplate>
+                </ItemsControl.ItemTemplate>
+            </ItemsControl>
+
+            <!-- Buttons -->
+            <Grid ColumnDefinitions="Auto,Auto" HorizontalAlignment="Right" Margin="0,4,0,0">
+                <Button Grid.Column="0"
+                        Content="Cancel"
+                        Margin="0,0,8,0"
+                        FontSize="12"
+                        Padding="10,5"
+                        MinHeight="28"
+                        Background="Transparent"
+                        Foreground="{StaticResource TextSecondaryBrush}"
+                        BorderBrush="{StaticResource BorderBrush}"
+                        Command="{Binding CancelCommand}" />
+                <Button Grid.Column="1"
+                        Content="{Binding PrimaryActionText}"
+                        FontSize="12"
+                        Padding="12,5"
+                        MinHeight="28"
+                        Background="{StaticResource AccentBrush}"
+                        Foreground="White"
+                        Command="{Binding CreateCommand}" />
+            </Grid>
+
+        </StackPanel>
+    </ScrollViewer>
+
+</Window>

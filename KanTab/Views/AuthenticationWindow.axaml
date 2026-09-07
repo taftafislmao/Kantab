@@ -1,0 +1,55 @@
+<Window xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:vm="using:KanTab.ViewModels"
+        xmlns:conv="using:KanTab.Converters"
+        x:Class="KanTab.Views.AuthenticationWindow"
+        x:DataType="vm:AuthenticationWindowViewModel"
+        Title="KanTab"
+        Width="420" Height="420"
+        MinWidth="380" MinHeight="380"
+        WindowStartupLocation="CenterOwner"
+        CanResize="False"
+        Background="{StaticResource WindowBackgroundBrush}">
+    <Border Padding="24">
+        <Grid MaxWidth="340" HorizontalAlignment="Center" VerticalAlignment="Center">
+            <!-- Welcome -->
+            <StackPanel Spacing="10" IsVisible="{Binding IsWelcome}">
+                <TextBlock Text="KanTab" FontSize="26" FontWeight="SemiBold" Foreground="{StaticResource TextPrimaryBrush}" HorizontalAlignment="Center" />
+                <TextBlock Text="Welcome" FontSize="13" Foreground="{StaticResource TextSecondaryBrush}" HorizontalAlignment="Center" />
+                <StackPanel Spacing="8" Margin="0,12,0,0">
+                    <Button Content="Log In" Command="{Binding ShowLoginCommand}" HorizontalAlignment="Stretch" HorizontalContentAlignment="Center" MinHeight="32" Background="{StaticResource AccentBrush}" Foreground="White" />
+                    <Button Content="Sign Up" Command="{Binding ShowSignUpCommand}" HorizontalAlignment="Stretch" HorizontalContentAlignment="Center" MinHeight="32" Background="Transparent" BorderBrush="{StaticResource BorderBrush}" Foreground="{StaticResource TextPrimaryBrush}" />
+                    <Button Content="Continue Offline" Command="{Binding ContinueOfflineCommand}" IsVisible="{Binding CanContinueOffline}" HorizontalAlignment="Stretch" HorizontalContentAlignment="Center" MinHeight="32" Background="Transparent" BorderBrush="{StaticResource DividerBrush}" Foreground="{StaticResource TextSecondaryBrush}" Margin="0,8,0,0" />
+                </StackPanel>
+            </StackPanel>
+
+            <!-- Login -->
+            <StackPanel Spacing="8" IsVisible="{Binding IsLogin}">
+                <Button Content="Back" Command="{Binding BackToWelcomeCommand}" FontSize="11" Padding="6,2" Background="Transparent" Foreground="{StaticResource TextMutedBrush}" HorizontalAlignment="Left" />
+                <TextBlock Text="Log In" FontSize="16" FontWeight="SemiBold" Foreground="{StaticResource TextPrimaryBrush}" />
+                <TextBlock Text="Email" FontSize="11" Foreground="{StaticResource TextSecondaryBrush}" />
+                <TextBox PlaceholderText="Email" Text="{Binding Email}" FontSize="12" Background="{StaticResource SurfaceBrush}" Foreground="{StaticResource TextPrimaryBrush}" BorderBrush="{StaticResource BorderBrush}" />
+                <TextBlock Text="Password" FontSize="11" Foreground="{StaticResource TextSecondaryBrush}" />
+                <TextBox PlaceholderText="Password" Text="{Binding Password}" PasswordChar="*" FontSize="12" Background="{StaticResource SurfaceBrush}" Foreground="{StaticResource TextPrimaryBrush}" BorderBrush="{StaticResource BorderBrush}" />
+                <TextBlock Text="{Binding ErrorMessage}" IsVisible="{Binding ErrorMessage, Converter={x:Static conv:StringIsNotNullOrEmptyConverter.Instance}}" Foreground="#E5534B" FontSize="11" TextWrapping="Wrap" />
+                <Button Content="Log In" Command="{Binding LoginCommand}" IsEnabled="{Binding !IsBusy}" HorizontalAlignment="Stretch" HorizontalContentAlignment="Center" MinHeight="30" Background="{StaticResource AccentBrush}" Foreground="White" />
+                <ProgressBar IsIndeterminate="True" IsVisible="{Binding IsBusy}" Height="2" Foreground="{StaticResource AccentBrush}" />
+            </StackPanel>
+
+            <!-- Sign Up -->
+            <StackPanel Spacing="8" IsVisible="{Binding IsSignUp}">
+                <Button Content="Back" Command="{Binding BackToWelcomeCommand}" FontSize="11" Padding="6,2" Background="Transparent" Foreground="{StaticResource TextMutedBrush}" HorizontalAlignment="Left" />
+                <TextBlock Text="Create Account" FontSize="16" FontWeight="SemiBold" Foreground="{StaticResource TextPrimaryBrush}" />
+                <TextBlock Text="Email" FontSize="11" Foreground="{StaticResource TextSecondaryBrush}" />
+                <TextBox PlaceholderText="Email" Text="{Binding Email}" FontSize="12" Background="{StaticResource SurfaceBrush}" Foreground="{StaticResource TextPrimaryBrush}" BorderBrush="{StaticResource BorderBrush}" />
+                <TextBlock Text="Password" FontSize="11" Foreground="{StaticResource TextSecondaryBrush}" />
+                <TextBox PlaceholderText="Password" Text="{Binding Password}" PasswordChar="*" FontSize="12" Background="{StaticResource SurfaceBrush}" Foreground="{StaticResource TextPrimaryBrush}" BorderBrush="{StaticResource BorderBrush}" />
+                <TextBlock Text="Confirm Password" FontSize="11" Foreground="{StaticResource TextSecondaryBrush}" />
+                <TextBox PlaceholderText="Confirm password" Text="{Binding ConfirmPassword}" PasswordChar="*" FontSize="12" Background="{StaticResource SurfaceBrush}" Foreground="{StaticResource TextPrimaryBrush}" BorderBrush="{StaticResource BorderBrush}" />
+                <TextBlock Text="{Binding ErrorMessage}" IsVisible="{Binding ErrorMessage, Converter={x:Static conv:StringIsNotNullOrEmptyConverter.Instance}}" Foreground="#E5534B" FontSize="11" TextWrapping="Wrap" />
+                <Button Content="Sign Up" Command="{Binding SignUpCommand}" IsEnabled="{Binding !IsBusy}" HorizontalAlignment="Stretch" HorizontalContentAlignment="Center" MinHeight="30" Background="{StaticResource AccentBrush}" Foreground="White" />
+                <ProgressBar IsIndeterminate="True" IsVisible="{Binding IsBusy}" Height="2" Foreground="{StaticResource AccentBrush}" />
+            </StackPanel>
+        </Grid>
+    </Border>
+</Window>

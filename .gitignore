@@ -1,0 +1,36 @@
+# Build outputs
+bin/
+obj/
+
+# User data and local storage
+**/kantab.json
+**/session.json
+**/supabase.local.json
+**/supabase.json
+KanTabAuthWeb/.env
+KanTabAuthWeb/.env.local
+
+# Environment files with secrets
+.env
+.env.local
+.env.*.local
+
+# IDE
+.idea/
+.vscode/
+*.swp
+*.swo
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Test results
+**/TestResults/
+**/coverage/
+
+node_modules/
+bin/
+obj/
+.vs/
+.env

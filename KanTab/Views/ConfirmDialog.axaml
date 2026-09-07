@@ -1,0 +1,51 @@
+<Window xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:vm="using:KanTab.ViewModels"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        mc:Ignorable="d" d:DesignWidth="360" d:DesignHeight="180"
+        x:Class="KanTab.Views.ConfirmDialog"
+        x:DataType="vm:ConfirmDialogViewModel"
+        Title="Confirm"
+        Width="360"
+        MinWidth="320"
+        SizeToContent="Height"
+        WindowStartupLocation="CenterOwner"
+        CanResize="False"
+        Background="{StaticResource WindowBackgroundBrush}">
+
+    <Design.DataContext>
+        <vm:ConfirmDialogViewModel />
+    </Design.DataContext>
+
+    <StackPanel Margin="20,16" Spacing="12">
+
+        <TextBlock Text="{Binding Message}"
+                   FontSize="13"
+                   TextWrapping="Wrap"
+                   Foreground="{StaticResource TextPrimaryBrush}" />
+
+        <Grid ColumnDefinitions="Auto,Auto" HorizontalAlignment="Right" Margin="0,4,0,0">
+            <Button Grid.Column="0"
+                    Content="Cancel"
+                    Margin="0,0,8,0"
+                    FontSize="12"
+                    Padding="10,5"
+                    MinHeight="28"
+                    Background="Transparent"
+                    Foreground="{StaticResource TextSecondaryBrush}"
+                    BorderBrush="{StaticResource BorderBrush}"
+                    Command="{Binding CancelCommand}" />
+            <Button Grid.Column="1"
+                    Content="Delete"
+                    FontSize="12"
+                    Padding="12,5"
+                    MinHeight="28"
+                    Background="#E5534B"
+                    Foreground="White"
+                    Command="{Binding ConfirmCommand}" />
+        </Grid>
+
+    </StackPanel>
+
+</Window>

@@ -1,0 +1,407 @@
+    <UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:vm="using:KanTab.ViewModels"
+             xmlns:models="using:KanTab.Models"
+             xmlns:converters="using:KanTab.Converters"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="600"
+             x:Class="KanTab.Views.KanBanView"
+             x:Name="Root"
+             x:DataType="vm:KanBanViewModel">
+
+    <Design.DataContext>
+        <vm:KanBanViewModel />
+    </Design.DataContext>
+
+    <Grid RowDefinitions="Auto,Auto,*">
+
+        <!-- Drag Preview (hidden by default) -->
+        <Border x:Name="DragPreview"
+                Grid.Row="0" Grid.RowSpan="3"
+                IsVisible="False"
+                Opacity="0.85"
+                Background="{StaticResource WindowBackgroundBrush}"
+                BorderBrush="{StaticResource BorderBrush}"
+                BorderThickness="1"
+                CornerRadius="3"
+                Padding="10,8"
+                Width="240"
+                HorizontalAlignment="Left"
+                VerticalAlignment="Top"
+                ZIndex="100">
+            <Border.Styles>
+                <Style Selector="Border#DragPreview">
+                    <Setter Property="BoxShadow" Value="0 6 14 2 rgba(0,0,0,0.45)" />
+                </Style>
+            </Border.Styles>
+            <Grid RowDefinitions="Auto,Auto">
+                <Grid Grid.Row="0" ColumnDefinitions="*,Auto">
+                    <TextBlock x:Name="DragPreviewTitle"
+                               Grid.Column="0"
+                               FontSize="12"
+                               Foreground="{StaticResource TextPrimaryBrush}"
+                               TextTrimming="CharacterEllipsis"
+                               Margin="0,0,8,0" />
+                    <Ellipse x:Name="DragPreviewPriority"
+                             Grid.Column="1"
+                             Width="7" Height="7"
+                             VerticalAlignment="Center" />
+                </Grid>
+                <StackPanel Grid.Row="1" Orientation="Horizontal" Spacing="6" Margin="0,4,0,0">
+                    <Border x:Name="DragPreviewTag"
+                            Background="{StaticResource SurfaceBrush}"
+                            CornerRadius="2"
+                            Padding="4,1"
+                            HorizontalAlignment="Left"
+                            IsVisible="False">
+                        <TextBlock x:Name="DragPreviewTagText"
+                                   FontSize="10"
+                                   Foreground="{StaticResource TextSecondaryBrush}" />
+                    </Border>
+                    <TextBlock x:Name="DragPreviewDueDate"
+                               FontSize="10"
+                               Foreground="{StaticResource TextMutedBrush}"
+                               VerticalAlignment="Center"
+                               IsVisible="False" />
+                </StackPanel>
+            </Grid>
+        </Border>
+
+        <!-- ==================== HEADER ==================== -->
+        <Grid Grid.Row="0" ColumnDefinitions="*,Auto,Auto" Margin="24,20,24,8">
+
+            <!-- Board Selector -->
+            <Grid Grid.Column="0" ColumnDefinitions="*,Auto,Auto">
+                <ComboBox Grid.Column="0"
+                      SelectedItem="{Binding SelectedBoard}"
+                      ItemsSource="{Binding Boards}"
+                      DisplayMemberBinding="{Binding Name}"
+                      VerticalAlignment="Center"
+                      HorizontalAlignment="Left"
+                      MinWidth="140"
+                      FontSize="13"
+                      Background="{StaticResource SurfaceBrush}"
+                      Foreground="{StaticResource TextPrimaryBrush}"
+                      BorderBrush="{StaticResource BorderBrush}" />
+
+                <!-- Board Actions Button -->
+                <Button Grid.Column="1"
+                        Content="▼"
+                        VerticalAlignment="Center"
+                        HorizontalAlignment="Right"
+                        FontSize="11"
+                        Padding="6,2"
+                        MinWidth="26"
+                        MinHeight="22"
+                        Background="Transparent"
+                        Foreground="{StaticResource TextMutedBrush}"
+                        IsVisible="{Binding HasSelectedBoard}">
+                    <Button.Flyout>
+                        <MenuFlyout>
+                            <MenuItem Header="New Board"
+                                      Command="{Binding DataContext.CreateBoardCommand, ElementName=Root}" />
+                            <Separator />
+                            <MenuItem Header="Rename"
+                                      Command="{Binding DataContext.RenameBoardCommand, ElementName=Root}"
+                                      CommandParameter="{Binding SelectedBoard}"
+                                      IsVisible="{Binding SelectedBoard.IsArchived, Converter={x:Static converters:InverseBoolToVisibilityConverter.Instance}}" />
+                            <MenuItem Header="Duplicate"
+                                      Command="{Binding DataContext.DuplicateBoardCommand, ElementName=Root}"
+                                      CommandParameter="{Binding SelectedBoard}"
+                                      IsVisible="{Binding SelectedBoard.IsArchived, Converter={x:Static converters:InverseBoolToVisibilityConverter.Instance}}" />
+                            <MenuItem Header="Archive"
+                                      Command="{Binding DataContext.ArchiveBoardCommand, ElementName=Root}"
+                                      CommandParameter="{Binding SelectedBoard}"
+                                      IsVisible="{Binding SelectedBoard.IsArchived, Converter={x:Static converters:InverseBoolToVisibilityConverter.Instance}}" />
+                            <MenuItem Header="Restore"
+                                      Command="{Binding DataContext.RestoreBoardCommand, ElementName=Root}"
+                                      CommandParameter="{Binding SelectedBoard}"
+                                      IsVisible="{Binding SelectedBoard.IsArchived}" />
+                            <MenuItem Header="Delete"
+                                      Command="{Binding DataContext.DeleteBoardCommand, ElementName=Root}"
+                                      CommandParameter="{Binding SelectedBoard}"
+                                      Foreground="#E5534B" />
+                        </MenuFlyout>
+                    </Button.Flyout>
+                    <Button.Styles>
+                        <Style Selector="Button:pointerover">
+                            <Setter Property="Background" Value="{StaticResource HoverBackgroundBrush}" />
+                            <Setter Property="Foreground" Value="{StaticResource TextSecondaryBrush}" />
+                        </Style>
+                    </Button.Styles>
+                </Button>
+
+                <!-- New Board Button (when no board selected) -->
+                <Button Grid.Column="2"
+                        Content="+ New Board"
+                        VerticalAlignment="Center"
+                        HorizontalAlignment="Right"
+                        FontSize="11"
+                        Padding="8,4"
+                        MinWidth="90"
+                        MinHeight="24"
+                        Background="{StaticResource AccentBrush}"
+                        Foreground="White"
+                        Command="{Binding DataContext.CreateBoardCommand, ElementName=Root}"
+                        IsVisible="{Binding HasSelectedBoard, Converter={x:Static converters:InverseBoolToVisibilityConverter.Instance}}">
+                </Button>
+            </Grid>
+
+            <!-- Search -->
+            <TextBox Grid.Column="1"
+                     Text="{Binding SearchText}"
+                     PlaceholderText="Search"
+                     VerticalAlignment="Center"
+                     Margin="12,0,0,0"
+                     Width="160"
+                     FontSize="13"
+                     Background="{StaticResource SurfaceBrush}"
+                     Foreground="{StaticResource TextPrimaryBrush}"
+                     BorderBrush="{StaticResource BorderBrush}" />
+
+            <!-- Add Task Button -->
+            <Button Grid.Column="2"
+                    Content="+ Add Task"
+                    VerticalAlignment="Center"
+                    Margin="12,0,0,0"
+                    FontSize="12"
+                    Padding="10,5"
+                    MinHeight="28"
+                    Background="{StaticResource AccentBrush}"
+                    Foreground="White"
+                    Command="{Binding AddTaskCommand}" />
+
+        </Grid>
+
+        <!-- ==================== BOARD TITLE ==================== -->
+        <TextBlock Grid.Row="1"
+                   Text="{Binding SelectedBoard.Name}"
+                   FontSize="15"
+                   FontWeight="SemiBold"
+                   Foreground="{StaticResource TextPrimaryBrush}"
+                   Margin="24,8,24,12" />
+
+        <!-- ==================== BOARD AREA ==================== -->
+        <ScrollViewer Grid.Row="2"
+                      HorizontalScrollBarVisibility="Auto"
+                      VerticalScrollBarVisibility="Disabled"
+                      Padding="24,0,24,24">
+
+            <DockPanel>
+
+                <ItemsControl DockPanel.Dock="Left"
+                              ItemsSource="{Binding SelectedBoard.Columns}">
+                    <ItemsControl.ItemsPanel>
+                        <ItemsPanelTemplate>
+                            <StackPanel Orientation="Horizontal" Spacing="12" />
+                        </ItemsPanelTemplate>
+                    </ItemsControl.ItemsPanel>
+                    <ItemsControl.ItemTemplate>
+                        <DataTemplate DataType="models:KanBanColumn">
+                            <Border Width="260"
+                                    Background="{StaticResource SurfaceBrush}"
+                                    BorderBrush="{StaticResource BorderBrush}"
+                                    BorderThickness="1"
+                                    CornerRadius="4">
+
+                                <Grid RowDefinitions="Auto,*,Auto">
+
+                                    <!-- Column Header -->
+                                    <Grid Grid.Row="0" ColumnDefinitions="*,Auto,Auto" Margin="12,10,8,8">
+                                        <TextBlock Grid.Column="0"
+                                                   Text="{Binding Title}"
+                                                   FontSize="13"
+                                                   FontWeight="SemiBold"
+                                                   Foreground="{StaticResource TextPrimaryBrush}"
+                                                   VerticalAlignment="Center" />
+                                        <Border Grid.Column="1"
+                                                Background="{StaticResource WindowBackgroundBrush}"
+                                                CornerRadius="8"
+                                                Padding="6,2"
+                                                VerticalAlignment="Center"
+                                                Margin="0,0,4,0">
+                                            <TextBlock Text="{Binding Tasks.Count}"
+                                                       FontSize="11"
+                                                       Foreground="{StaticResource TextSecondaryBrush}" />
+                                        </Border>
+                                        <Button Grid.Column="2"
+                                                Content="···"
+                                                VerticalAlignment="Center"
+                                                FontSize="12"
+                                                Padding="8,2"
+                                                MinWidth="26"
+                                                MinHeight="22"
+                                                Background="Transparent"
+                                                Foreground="{StaticResource TextMutedBrush}">
+                                            <Button.Flyout>
+                                                <MenuFlyout>
+                                                    <MenuItem Header="Rename"
+                                                              Command="{Binding DataContext.RenameColumnCommand, ElementName=Root}"
+                                                              CommandParameter="{Binding .}" />
+                                                    <MenuItem Header="Delete"
+                                                              Command="{Binding DataContext.DeleteColumnCommand, ElementName=Root}"
+                                                              CommandParameter="{Binding .}" />
+                                                </MenuFlyout>
+                                            </Button.Flyout>
+                                            <Button.Styles>
+                                                <Style Selector="Button:pointerover">
+                                                    <Setter Property="Background" Value="{StaticResource HoverBackgroundBrush}" />
+                                                    <Setter Property="Foreground" Value="{StaticResource TextSecondaryBrush}" />
+                                                </Style>
+                                            </Button.Styles>
+                                        </Button>
+                                    </Grid>
+
+                                    <!-- Task Cards -->
+                                    <ItemsControl Grid.Row="1"
+                                                  ItemsSource="{Binding Tasks}"
+                                                  Margin="12,0">
+                                        <ItemsControl.ItemsPanel>
+                                            <ItemsPanelTemplate>
+                                                <StackPanel Spacing="6" />
+                                            </ItemsPanelTemplate>
+                                        </ItemsControl.ItemsPanel>
+                                        <ItemsControl.ItemTemplate>
+                                             <DataTemplate DataType="models:TaskItem">
+                                                  <Border Background="{StaticResource WindowBackgroundBrush}"
+                                                          BorderBrush="{StaticResource BorderBrush}"
+                                                          BorderThickness="1"
+                                                          CornerRadius="3"
+                                                          Padding="10,8"
+                                                          PointerPressed="TaskCard_PointerPressed"
+                                                          PointerMoved="TaskCard_PointerMoved"
+                                                          PointerReleased="TaskCard_PointerReleased"
+                                                          DoubleTapped="TaskCard_DoubleTapped">
+
+                                                    <Grid RowDefinitions="Auto,Auto,Auto" ColumnDefinitions="*,Auto">
+
+                                                        <!-- Priority Indicator -->
+                                                        <Ellipse Grid.Row="0" Grid.Column="1"
+                                                                 Width="7" Height="7"
+                                                                 VerticalAlignment="Center"
+                                                                 HorizontalAlignment="Right"
+                                                                 Margin="0,0,0,4"
+                                                                 Fill="{Binding Priority, Converter={x:Static converters:PriorityToBrushConverter.Instance}}" />
+
+                                                        <!-- Task Title -->
+                                                        <TextBlock Grid.Row="0" Grid.Column="0"
+                                                                   Text="{Binding Title}"
+                                                                   FontSize="12"
+                                                                   Foreground="{StaticResource TextPrimaryBrush}"
+                                                                   TextTrimming="CharacterEllipsis"
+                                                                   Margin="0,0,8,0" />
+
+                                                        <!-- Tag and Due Date Row -->
+                                                        <StackPanel Grid.Row="1" Grid.Column="0" Grid.ColumnSpan="2"
+                                                                    Orientation="Horizontal" Spacing="6"
+                                                                    Margin="0,4,0,0">
+
+                                                            <!-- Tag -->
+                                                            <Border Background="{StaticResource SurfaceBrush}"
+                                                                    CornerRadius="2"
+                                                                    Padding="4,1"
+                                                                    HorizontalAlignment="Left"
+                                                                    IsVisible="{Binding Tags.Count, Converter={x:Static converters:CountToBoolConverter.Instance}}">
+                                                                <TextBlock Text="{Binding Tags[0]}"
+                                                                           FontSize="10"
+                                                                           Foreground="{StaticResource TextSecondaryBrush}" />
+                                                            </Border>
+
+                                                            <!-- Due Date -->
+                                                            <Border IsVisible="{Binding HasChecklist}" Background="Transparent" BorderBrush="{StaticResource BorderBrush}" BorderThickness="1" CornerRadius="2" Padding="4,1" VerticalAlignment="Center"><StackPanel Orientation="Horizontal" Spacing="3"><TextBlock Text="☑" FontSize="10" Foreground="{StaticResource TextSecondaryBrush}" VerticalAlignment="Center"/><TextBlock Text="{Binding ChecklistProgressText}" FontSize="10" Foreground="{StaticResource TextSecondaryBrush}" VerticalAlignment="Center"/></StackPanel></Border>
+
+                                                            <TextBlock Text="{Binding DueDate}"
+                                                                       FontSize="10"
+                                                                       Foreground="{StaticResource TextMutedBrush}"
+                                                                       VerticalAlignment="Center"
+                                                                       IsVisible="{Binding DueDate, Converter={x:Static converters:StringIsNotNullOrEmptyConverter.Instance}}" />
+
+                                                        </StackPanel>
+
+                                                        <!-- Action Menu -->
+                                                        <Button Grid.Row="2" Grid.Column="0" Grid.ColumnSpan="2"
+                                                                Content="···"
+                                                                HorizontalAlignment="Right"
+                                                                VerticalAlignment="Center"
+                                                                FontSize="12"
+                                                                Padding="6,2"
+                                                                Margin="0,4,0,0"
+                                                                Background="Transparent"
+                                                                Foreground="{StaticResource TextMutedBrush}">
+                                                            <Button.Flyout>
+                                                                <MenuFlyout>
+                                                                    <MenuItem Header="Edit"
+                                                                              Command="{Binding DataContext.EditTaskCommand, ElementName=Root}"
+                                                                              CommandParameter="{Binding .}" />
+                                                                    <MenuItem Header="Delete"
+                                                                              Command="{Binding DataContext.DeleteTaskCommand, ElementName=Root}"
+                                                                              CommandParameter="{Binding .}" />
+                                                                </MenuFlyout>
+                                                            </Button.Flyout>
+                                                            <Button.Styles>
+                                                                <Style Selector="Button:pointerover">
+                                                                    <Setter Property="Background" Value="{StaticResource HoverBackgroundBrush}" />
+                                                                    <Setter Property="Foreground" Value="{StaticResource TextSecondaryBrush}" />
+                                                                </Style>
+                                                            </Button.Styles>
+                                                        </Button>
+
+                                                    </Grid>
+                                                </Border>
+                                            </DataTemplate>
+                                        </ItemsControl.ItemTemplate>
+                                    </ItemsControl>
+
+                                    <!-- Add Task -->
+                                    <Button Grid.Row="2"
+                                            Content="+ Add task"
+                                            HorizontalAlignment="Stretch"
+                                            HorizontalContentAlignment="Left"
+                                            Background="Transparent"
+                                            Foreground="{StaticResource TextMutedBrush}"
+                                            FontSize="11"
+                                            Padding="10,5"
+                                            Margin="0,4,0,8"
+                                            Command="{Binding DataContext.AddTaskCommand, ElementName=Root}"
+                                            CommandParameter="{Binding}">
+                                        <Button.Styles>
+                                            <Style Selector="Button:pointerover">
+                                                <Setter Property="Background" Value="{StaticResource HoverBackgroundBrush}" />
+                                                <Setter Property="Foreground" Value="{StaticResource TextSecondaryBrush}" />
+                                            </Style>
+                                        </Button.Styles>
+                                    </Button>
+
+                                </Grid>
+                            </Border>
+                        </DataTemplate>
+                    </ItemsControl.ItemTemplate>
+                </ItemsControl>
+
+                <!-- Add Column Button -->
+                <Button DockPanel.Dock="Right"
+                        Content="+ Add column"
+                        HorizontalAlignment="Left"
+                        VerticalAlignment="Top"
+                        Margin="12,0,0,0"
+                        Padding="10,5"
+                        FontSize="11"
+                        Background="Transparent"
+                        Foreground="{StaticResource TextMutedBrush}"
+                        Command="{Binding AddColumnCommand}">
+                    <Button.Styles>
+                        <Style Selector="Button:pointerover">
+                            <Setter Property="Background" Value="{StaticResource HoverBackgroundBrush}" />
+                            <Setter Property="Foreground" Value="{StaticResource TextSecondaryBrush}" />
+                        </Style>
+                    </Button.Styles>
+                </Button>
+
+            </DockPanel>
+
+        </ScrollViewer>
+
+    </Grid>
+
+</UserControl>
