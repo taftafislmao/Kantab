@@ -59,22 +59,13 @@ public partial class AuthenticationWindowViewModel : ViewModelBase
     [RelayCommand]
     private void ShowLogin()
     {
-        if (!string.IsNullOrWhiteSpace(_authWebBaseUrl))
-        {
-            OpenBrowser("/sign-in");
-            return;
-        }
+        // Keep auth in-window even when browser URL is configured — browser flow is for later phase.
         CurrentMode = AuthMode.Login;
     }
 
     [RelayCommand]
     private void ShowSignUp()
     {
-        if (!string.IsNullOrWhiteSpace(_authWebBaseUrl))
-        {
-            OpenBrowser("/sign-up");
-            return;
-        }
         CurrentMode = AuthMode.SignUp;
     }
     [RelayCommand] private void BackToWelcome() => CurrentMode = AuthMode.Welcome;

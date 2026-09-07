@@ -289,23 +289,47 @@ public class SupabaseAuthService : IAuthService, IDisposable
 
             if (!response.IsSuccessStatusCode)
             {
-                using var doc = JsonDocument.Parse(json);
-                var error = doc.RootElement.TryGetProperty("error_description", out var desc)
-                    ? desc.GetString()
-                    : doc.RootElement.TryGetProperty("message", out var msg)
-                        ? msg.GetString()
-                        : "Authentication failed.";
-                return AuthResult.Fail(error ?? "Authentication failed.");
+                string? error = null;
+                try
+                {
+                    using var doc = JsonDocument.Parse(json);
+                    var root = doc.RootElement;
+                    error = root.TryGetProperty("error_description", out var desc) ? desc.GetString()
+                        : root.TryGetProperty("msg", out var m) ? m.GetString()
+                        : root.TryGetProperty("message", out var msg) ? msg.GetString()
+                        : root.TryGetProperty("error", out var e) ? e.GetString()
+                        : null;
+                    var code = root.TryGetProperty("error_code", out var ec) ? ec.GetString() : null;
+                    if (code == "over_email_send_rate_limit")
+                        error = "Too many sign-ups right now. Please wait a minute and try again.";
+                    else if (code == "email_address_invalid")
+                        error = "That email address is not valid.";
+                }
+                catch { }
+                if (string.IsNullOrWhiteSpace(error))
+                    error = $"Authentication failed ({(int)response.StatusCode}).";
+                // Include raw json for debugging rate-limit / unknown errors
+                if (string.IsNullOrWhiteSpace(json) || error.Contains("Authentication failed"))
+                    error = string.IsNullOrWhiteSpace(json) ? error : $"{error} — {json.Substring(0, Math.Min(120, json.Length))}";
+                return AuthResult.Fail(error);
             }
 
-            using var document = JsonDocument.Parse(json);
-            var root = document.RootElement;
-            var accessToken = root.TryGetProperty("access_token", out var t) ? t.GetString() : null;
-            var refreshToken = root.TryGetProperty("refresh_token", out var r) ? r.GetString() : null;
-            var userId = root.TryGetProperty("user", out var u) && u.TryGetProperty("id", out var uid)
-                ? uid.GetString() : null;
-            var email = root.TryGetProperty("user", out var u2) && u2.TryGetProperty("email", out var e)
-                ? e.GetString() : null;
+            using var document2 = JsonDocument.Parse(json);
+            var root2 = document2.RootElement;
+            var accessToken = root2.TryGetProperty("access_token", out var t) ? t.GetString() : null;
+            var refreshToken = root2.TryGetProperty("refresh_token", out var r) ? r.GetString() : null;
+            var userId = root2.TryGetProperty("user", out var u) && u.TryGetProperty("id", out var uid)
+                ? uid.GetString() : root2.TryGetProperty("id", out var id2) ? id2.GetString() : null;
+            var email = root2.TryGetProperty("user", out var u2) && u2.TryGetProperty("email", out var e2)
+                ? e2.GetString() : root2.TryGetProperty("email", out var em) ? em.GetString() : null;
+
+            // Email-confirmation mode: signup returns user without tokens — not an error.
+            if (string.IsNullOrEmpty(accessToken) && !string.IsNullOrEmpty(userId))
+            {
+                // No session yet (email confirmation required). Treat as informational success;
+                // the ViewModel will show "Check your email..." and stay on auth.
+                return AuthResult.Fail("Check your email to confirm your account, then log in.");
+            }
 
             if (string.IsNullOrEmpty(accessToken) || string.IsNullOrEmpty(userId))
                 return AuthResult.Fail("Invalid response from authentication server.");

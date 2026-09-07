@@ -16,6 +16,7 @@ create index if not exists idx_boards_active
     where archived_at is null and deleted_at is null;
 
 -- Index for task due date filtering (overdue tasks)
+-- tasks table uses is_completed, not completed_at
 create index if not exists idx_tasks_due_date
     on public.tasks (due_date)
-    where completed_at is null;
+    where is_completed = false;

@@ -124,29 +124,22 @@ public partial class App : Application
                 // If the user picked Continue Offline, they stay offline until app close;
                 // next launch re-shows the login. Persisted InitialSetupCompleted is now
                 // only set on real login success; logout clears it.
-                bool needAuth;
-                {
-                    bool loggedIn = restoredUser != null;
-                    if (!loggedIn)
-                        needAuth = true;
-                    else
-                        needAuth = false;
-                    // Override: if the previous code had InitialSetupCompleted=false handling,
-                    // we now just key off the session. This satisfies:
-                    // - not logged in -> always show login
-                    // - Continue Offline -> offline until close -> next launch shows login again
-                    // - logged in -> skip auth
-                    // - logged out -> show login again
-                }
-                LogStartup($"[STARTUP] needAuth(==no session)={needAuth} InitialSetupCompleted={state.Settings.InitialSetupCompleted} IsConfigured={config.IsConfigured}");
+                // Show auth whenever there's no valid session, OR when setup hasn't completed.
+                // RestoredUser is not null means we have a valid session (token still works) — skip auth.
+                // If RestoredUser is null (no session / expired), always show auth regardless of
+                // InitialSetupCompleted, so Continue Offline doesn't accidentally persist.
+                bool needAuth = restoredUser == null;
+                LogStartup($"[STARTUP] needAuth={(needAuth ? "true(no valid session)" : "false(valid session)")} InitialSetupCompleted={state.Settings.InitialSetupCompleted} IsConfigured={config.IsConfigured}");
 
                 if (needAuth)
                 {
                     LogStartup("[STARTUP] Creating AuthenticationWindow");
                     var tcs = new System.Threading.Tasks.TaskCompletionSource<bool>();
+                    // When KANTAB_AUTH_WEB_URL is set, the desktop delegates real auth to the browser
+                    // (no password fields inside the desktop app). Remove the fallback so
+                    // Log In / Sign Up stay in-window via AuthMode until you explicitly configure the web URL.
                     var authWebUrl = Environment.GetEnvironmentVariable("KANTAB_AUTH_WEB_URL")
-                        ?? Environment.GetEnvironmentVariable("AUTH_WEB_URL")
-                        ?? (config.IsConfigured ? null : null);
+                        ?? Environment.GetEnvironmentVariable("AUTH_WEB_URL");
 
                     await Dispatcher.UIThread.InvokeAsync(() =>
                     {
@@ -173,12 +166,23 @@ public partial class App : Application
                             }, canContinueOffline: true, authWebBaseUrl: authWebUrl);
                             authVm.ContinueOfflineRequested += (_, _) => isContinueOfflineFlow = true;
                             var authWindow = new AuthenticationWindow(authVm);
-                            authVm.RequestClose += (_, _) => { LogStartup("[STARTUP] RequestClose -> Close()"); try { authWindow.Close(); } catch (System.Exception ex) { LogStartup($"[STARTUP] Close error: {ex}"); } };
+                            // Make auth independent so MainWindow hosting swaps cannot blank it.
+                            // Don't pass Show(owner) — the owner was the startup ContentControl host and
+                            // Avalonia rendered a chrome-only transparent owned window (your minimized/middle button).
+                            authWindow.ShowInTaskbar = true;
+                            authWindow.WindowStartupLocation = Avalonia.Controls.WindowStartupLocation.CenterScreen;
+                            authVm.RequestClose += (_, _) =>
+                            {
+                                LogStartup("[STARTUP] RequestClose -> Close()");
+                                Dispatcher.UIThread.InvokeAsync(() =>
+                                {
+                                    try { authWindow.Close(); } catch (System.Exception ex) { LogStartup($"[STARTUP] Close error: {ex}"); }
+                                });
+                            };
                             authWindow.Closed += (_, _) => { LogStartup("[STARTUP] AuthenticationWindow.Closed"); if (!tcs.Task.IsCompleted) tcs.TrySetResult(false); };
                             authWindow.Opened += (_, _) => LogStartup("[STARTUP] AuthenticationWindow.Opened");
-                            // MainWindow is already shown (desktop.MainWindow assigned before RunStartupAsync), so Show(mainWindow) is valid.
-                            try { authWindow.Show(mainWindow); LogStartup("[STARTUP] AuthenticationWindow.Show(mainWindow) called"); }
-                            catch (System.Exception ex) { LogStartup($"[STARTUP] Show(owner) failed: {ex}, trying Show()"); authWindow.Show(); LogStartup("[STARTUP] AuthenticationWindow.Show() called"); }
+                            try { authWindow.Show(); LogStartup("[STARTUP] AuthenticationWindow.Show() called"); }
+                            catch (System.Exception ex) { LogStartup($"[STARTUP] Show() failed: {ex}"); tcs.TrySetResult(false); }
                         }
                         catch (System.Exception ex)
                         {
