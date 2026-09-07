@@ -24,6 +24,7 @@ public partial class AuthenticationWindowViewModel : ViewModelBase
     [ObservableProperty] private bool _canContinueOffline;
 
     public event EventHandler? RequestClose;
+    public event EventHandler? ContinueOfflineRequested;
 
     public bool IsWelcome => CurrentMode == AuthMode.Welcome;
     public bool IsLogin => CurrentMode == AuthMode.Login;
@@ -79,6 +80,7 @@ public partial class AuthenticationWindowViewModel : ViewModelBase
     [RelayCommand] private void BackToWelcome() => CurrentMode = AuthMode.Welcome;
     [RelayCommand] private void ContinueOffline()
     {
+        ContinueOfflineRequested?.Invoke(this, EventArgs.Empty);
         _onSuccess?.Invoke();
         RequestClose?.Invoke(this, EventArgs.Empty);
     }

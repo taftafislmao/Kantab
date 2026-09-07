@@ -244,6 +244,12 @@ public partial class SettingsViewModel : ViewModelBase
             IsSignedIn = false;
             SyncStatus = "Local only";
             ErrorMessage = null;
+            // Log out means next launch must show login again.
+            if (_workspace != null)
+            {
+                _workspace.Settings.InitialSetupCompleted = false;
+                _workspace.SaveNow();
+            }
         }
         catch (Exception ex)
         {

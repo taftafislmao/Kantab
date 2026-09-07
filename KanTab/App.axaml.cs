@@ -9,6 +9,7 @@ using KanTab.Storage.Supabase;
 using KanTab.ViewModels;
 using KanTab.Views;
 using KanTab.Themes;
+using System;
 using System.IO;
 
 namespace KanTab;
@@ -119,11 +120,27 @@ public partial class App : Application
                     }
                 }
 
-                bool needAuth = !state.Settings.InitialSetupCompleted && restoredUser == null;
-                bool returningLoggedOut = state.Settings.InitialSetupCompleted && restoredUser == null && config.IsConfigured;
-                LogStartup($"[STARTUP] needAuth={needAuth} returningLoggedOut={returningLoggedOut} IsConfigured={config.IsConfigured}");
+                // Transient offline for this session only — never persisted.
+                // If the user picked Continue Offline, they stay offline until app close;
+                // next launch re-shows the login. Persisted InitialSetupCompleted is now
+                // only set on real login success; logout clears it.
+                bool needAuth;
+                {
+                    bool loggedIn = restoredUser != null;
+                    if (!loggedIn)
+                        needAuth = true;
+                    else
+                        needAuth = false;
+                    // Override: if the previous code had InitialSetupCompleted=false handling,
+                    // we now just key off the session. This satisfies:
+                    // - not logged in -> always show login
+                    // - Continue Offline -> offline until close -> next launch shows login again
+                    // - logged in -> skip auth
+                    // - logged out -> show login again
+                }
+                LogStartup($"[STARTUP] needAuth(==no session)={needAuth} InitialSetupCompleted={state.Settings.InitialSetupCompleted} IsConfigured={config.IsConfigured}");
 
-                if (needAuth || returningLoggedOut)
+                if (needAuth)
                 {
                     LogStartup("[STARTUP] Creating AuthenticationWindow");
                     var tcs = new System.Threading.Tasks.TaskCompletionSource<bool>();
@@ -136,15 +153,25 @@ public partial class App : Application
                         try
                         {
                             var svc = authService ?? new SupabaseAuthService(config);
+                            bool isContinueOfflineFlow = false;
                             var authVm = new AuthenticationWindowViewModel(svc, () =>
                             {
-                                LogStartup("[STARTUP] onSuccess: marking InitialSetupCompleted=true");
-                                state.Settings.InitialSetupCompleted = true;
-                                state.SaveNow();
+                                // Real login: persist so next launch skips auth.
+                                // Continue Offline: transient offline for this session only,
+                                // do NOT persist InitialSetupCompleted so next launch shows login again.
+                                if (isContinueOfflineFlow)
+                                {
+                                    LogStartup("[STARTUP] onSuccess(offline): transient offline, NOT persisting InitialSetupCompleted");
+                                }
+                                else
+                                {
+                                    LogStartup("[STARTUP] onSuccess(login): marking InitialSetupCompleted=true");
+                                    state.Settings.InitialSetupCompleted = true;
+                                    state.SaveNow();
+                                }
                                 tcs.TrySetResult(true);
-                            }, canContinueOffline: !config.IsConfigured, authWebBaseUrl: authWebUrl);
-                            if (returningLoggedOut)
-                                authVm.CurrentMode = AuthMode.Login;
+                            }, canContinueOffline: true, authWebBaseUrl: authWebUrl);
+                            authVm.ContinueOfflineRequested += (_, _) => isContinueOfflineFlow = true;
                             var authWindow = new AuthenticationWindow(authVm);
                             authVm.RequestClose += (_, _) => { LogStartup("[STARTUP] RequestClose -> Close()"); try { authWindow.Close(); } catch (System.Exception ex) { LogStartup($"[STARTUP] Close error: {ex}"); } };
                             authWindow.Closed += (_, _) => { LogStartup("[STARTUP] AuthenticationWindow.Closed"); if (!tcs.Task.IsCompleted) tcs.TrySetResult(false); };

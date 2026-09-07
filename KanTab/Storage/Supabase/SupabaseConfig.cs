@@ -37,7 +37,9 @@ public class SupabaseConfig
         foreach (var path in new[]
                  {
                      Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "KanTab", "supabase.json"),
-                     Path.Combine(AppContext.BaseDirectory, "supabase.local.json")
+                     Path.Combine(AppContext.BaseDirectory, "supabase.local.json"),
+                     Path.Combine(AppContext.BaseDirectory, "..", "..", "..", "..", "supabase.local.json"),
+                     Path.Combine(AppContext.BaseDirectory, "..", "..", "..", "supabase.local.json")
                  })
         {
             try

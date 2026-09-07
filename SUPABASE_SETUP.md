@@ -23,15 +23,27 @@ KanTab uses Supabase as its cloud data foundation for future synchronization. Th
 KanTab reads Supabase configuration from environment variables:
 
 ```bash
-SUPABASE_URL=https://your-project-ref.supabase.co
-SUPABASE_ANON_KEY=your-anon-key-here
+KANTAB_SUPABASE_URL=https://your-project-ref.supabase.co
+KANTAB_SUPABASE_ANON_KEY=your-anon-key-here
+# also accepted (legacy)
+# SUPABASE_URL / SUPABASE_ANON_KEY
+# Desktop browser auth web (optional, local dev):
+# KANTAB_AUTH_WEB_URL=http://localhost:5173
 ```
 
 ### Where to set them
 
-- **Windows**: `setx SUPABASE_URL "https://..."` and `setx SUPABASE_ANON_KEY "..."`
+- **Windows**: `setx KANTAB_SUPABASE_URL "https://..."` and `setx KANTAB_SUPABASE_ANON_KEY "..."`
 - **macOS/Linux**: Add to `~/.bashrc` or `~/.zshrc`
-- **Development**: Use `supabase.local.json` (git-ignored)
+- **Development**: Use `%LOCALAPPDATA%\KanTab\supabase.json` or `supabase.local.json` (both git-ignored)
+
+### Auth web (`KanTabAuthWeb`)
+
+```bash
+# KanTabAuthWeb/.env (git-ignored, Vite public key only)
+VITE_SUPABASE_URL=https://your-project-ref.supabase.co
+VITE_SUPABASE_ANON_KEY=your-anon-key-here
+```
 
 ## Running Database Migrations
 

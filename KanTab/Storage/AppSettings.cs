@@ -30,6 +30,6 @@ public class AppSettings
     /// <summary>Whether overdue notifications fire once a task becomes overdue.</summary>
     public bool OverdueNotificationsEnabled { get; set; } = true;
 
-    /// <summary>First-launch setup completed (Welcome/Auth done). Persists across restarts; NOT reset on logout.</summary>
+    /// <summary>First-launch setup completed (Welcome/Auth done). Reset on log out; NOT set by Continue Offline (transient offline).</summary>
     public bool InitialSetupCompleted { get; set; } = false;
 }

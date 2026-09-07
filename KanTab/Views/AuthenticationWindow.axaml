@@ -19,7 +19,7 @@
                 <StackPanel Spacing="8" Margin="0,12,0,0">
                     <Button Content="Log In" Command="{Binding ShowLoginCommand}" HorizontalAlignment="Stretch" HorizontalContentAlignment="Center" MinHeight="32" Background="{StaticResource AccentBrush}" Foreground="White" />
                     <Button Content="Sign Up" Command="{Binding ShowSignUpCommand}" HorizontalAlignment="Stretch" HorizontalContentAlignment="Center" MinHeight="32" Background="Transparent" BorderBrush="{StaticResource BorderBrush}" Foreground="{StaticResource TextPrimaryBrush}" />
-                    <Button Content="Continue Offline" Command="{Binding ContinueOfflineCommand}" IsVisible="{Binding CanContinueOffline}" HorizontalAlignment="Stretch" HorizontalContentAlignment="Center" MinHeight="32" Background="Transparent" BorderBrush="{StaticResource DividerBrush}" Foreground="{StaticResource TextSecondaryBrush}" Margin="0,8,0,0" />
+                    <Button Content="Continue Offline" Command="{Binding ContinueOfflineCommand}" HorizontalAlignment="Stretch" HorizontalContentAlignment="Center" MinHeight="32" Background="Transparent" BorderBrush="{StaticResource DividerBrush}" Foreground="{StaticResource TextSecondaryBrush}" Margin="0,8,0,0" />
                 </StackPanel>
             </StackPanel>
 
